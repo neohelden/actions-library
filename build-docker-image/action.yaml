@@ -44,6 +44,7 @@ runs:
   steps: 
     - uses: actions/checkout@v2
 
+    # use specific commit-sha to be sure this is not changed
     - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
         remove-dotnet: 'true'
@@ -58,8 +59,6 @@ runs:
       uses: docker/metadata-action@v3.5.0
       with:
         images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}
-
-    - uses: docker/setup-qemu-action@v1
 
     - uses: docker/setup-buildx-action@v1
 
