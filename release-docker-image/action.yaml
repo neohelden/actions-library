@@ -19,20 +19,6 @@ inputs:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
-  vault-url: 
-    description: URL to Vault storing the private key for signing the released Docker image
-    required: false
-    default: https://vault.neohelden.com:8200
-  vault-role-id:
-    description: Role id used to login to Vault 
-    required: true
-  vault-secret-id:
-    description:  Secret id used to login to Vault
-    required: true
-  notary-registry: 
-    description: URL to the Notary registry for signing the released Docker image
-    required: false
-    default: https://notary.registry.neohelden.com
   
 runs:
   using: "composite"
@@ -49,27 +35,8 @@ runs:
         FROM  ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
         EOF
 
-    - uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
+    - uses: docker/build-push-action@v2
       with:
         context: .
         tags:  ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
         push: true
-
-    - uses: hashicorp/vault-action@v2.3.1
-      id: signingKeys
-      with:
-        url: ${{ inputs.vault-url }}
-        method: approle
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        secrets: |
-          notary/keys/${{ inputs.registry-org }}/${{ inputs.image-name }} key | DOCKER_NOTARY_KEY;
-        exportEnv: false
-
-    - uses: neohelden/notary-action@master
-      with:
-        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
-        key: ${{ steps.signingKeys.outputs.DOCKER_NOTARY_KEY }}
-        keyname: autobuild
-        registry: ${{ inputs.notary-registry }}
-
