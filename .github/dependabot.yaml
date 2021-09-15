@@ -1,0 +1,14 @@
+version: 2
+registries:
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+      time: '02:00'
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 33
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
