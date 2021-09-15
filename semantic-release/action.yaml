@@ -1,0 +1,41 @@
+name: 'semantic-release'
+description: 'Creates a Semantic Release'
+inputs:
+  gh-app-id:
+    description: Id of a Github App used to trigger follow-up Github Action workflows
+    required: true
+  gh-app-priv-key:
+    description: Private key of a Github App used to trigger follow-up Github Action workflows
+    required: true
+  release-branch: 
+    description: Branch name where releases are built from
+    required: false
+    default: main
+runs:
+  using: "composite"
+  steps: 
+    - uses: actions/checkout@v2.3.4
+
+    - uses: actions/setup-node@v2.4.0
+      with:
+        node-version: '14'
+
+    - shell: bash
+      run: |
+        sudo npm install -g \
+          semantic-release@17.1.2 \
+          @semantic-release/git@9.0.0 \
+          @semantic-release/release-notes-generator@9.0.1 \
+          @semantic-release/github@7.1.1
+
+    # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
+    - id: generate_token
+      uses: tibdex/github-app-token@36464acb844fc53b9b8b2401da68844f6b05ebb0
+      with:
+        app_id: ${{ secrets.GH_APP_ID }}
+        private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+    - shell: bash
+      run: semantic-release --branches ${{ inputs.release-branch }}
+      env:
+        GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}

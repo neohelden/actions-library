@@ -1,0 +1,96 @@
+name: 'build-docker-image'
+description: 'Builds and releases a Docker container'
+inputs:
+  container-verify-cmd:
+    description: 'Log entry which shows up if the container starts up successfully after build'
+    required: true
+  image-registry: 
+    description: url to the container registry where to push container images too
+    required: false
+    default: registry.neohelden.com
+  image-registry-username:
+    description: Username used to login at the image registry
+    required: true
+  image-registry-token:
+    description: TOken use to login at the image registry
+    required: true
+  registry-org:
+    description: Organization within the image registry where to push container images too
+    required: false
+    default: neohelden
+  image-name: 
+    description: Name of the container image.
+    required: false
+    default: ${{ github.event.repository.name }}
+  image-tag:
+    description: Tag of the container image 
+    required: false
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+  docker-file:
+    description: Full path to the Dockerfile
+    required: false
+    default: ./Dockerfile
+  docker-context:
+    description: Context used to build the Docker image
+    required: false
+    default: ./
+  platforms:
+    description: Comma-separated list of platforms the Docker image gets built for
+    required: false
+    default: linux/amd64
+
+runs:
+  using: "composite"
+  steps: 
+    - uses: actions/checkout@v2
+
+    - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
+      with:
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        build-mount-path: /var/lib/docker
+
+    - shell: bash
+      run: sudo service docker restart
+
+    - id: docker_meta
+      uses: docker/metadata-action@v3.5.0
+      with:
+        images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}
+
+    - uses: docker/setup-qemu-action@v1
+
+    - uses: docker/setup-buildx-action@v1
+
+    - uses: docker/login-action@v1
+      with:
+        registry: ${{ inputs.image-registry }}
+        username: ${{ inputs.image-registry-username }}
+        password: ${{ inputs.image-registry-token }}
+
+    - uses: docker/build-push-action@v2
+      with:
+        context: ${{ inputs.docker-context }}
+        file: ${{ inputs.docker-file }}
+        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        labels: ${{ steps.docker_meta.outputs.labels }}
+        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:nightly
+        cache-to: type=inline
+        platforms: ${{ inputs.platforms }}
+        load: true
+        pull: true
+        push: false
+
+    - shell: bash
+      run: |
+        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }} && sleep 30 && docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
+
+    - shell: bash
+      run: docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+
+    - shell: bash
+      run: docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }} ${{ steps.docker_meta.outputs.tags }}
+
+    - shell: bash
+      run: docker push ${{ steps.docker_meta.outputs.tags }}
