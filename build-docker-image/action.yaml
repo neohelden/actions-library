@@ -81,9 +81,22 @@ runs:
         pull: true
         push: false
 
-    - shell: bash
+    - shell: bash {0}
       run: |
-        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }} && sleep 30 && docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
+        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        counter=0
+        until docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
+        do
+          echo "Waiting to startup container..."
+          sleep 5
+
+          if [ $counter -gt 20 ]
+          then
+            exit 1
+          fi
+          
+          ((counter++))
+        done
 
     - shell: bash
       run: docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
