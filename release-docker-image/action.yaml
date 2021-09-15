@@ -71,5 +71,5 @@ runs:
         tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
         key: ${{ steps.signingKeys.outputs.DOCKER_NOTARY_KEY }}
         keyname: autobuild
-        registry: ${{ notary-registry }}
+        registry: ${{ inputs.notary-registry }}
 
