@@ -19,7 +19,7 @@ inputs:
     required: false
     default: neohelden
   image-name: 
-    description: Name of the container image.
+    description: Name of the container image. Default is derived from the repo name.
     required: false
     default: ${{ github.event.repository.name }}
   image-tag:
@@ -44,6 +44,11 @@ runs:
   steps: 
     - uses: actions/checkout@v2
 
+
+    - shell: bash
+      id: image-name
+      run: echo "::set-output name=value::$(echo '${{ inputs.image_name }} || ${{ github.repository }}' | awk -F '/' '{print $2}')"
+
     # use specific commit-sha to be sure this is not changed
     - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
@@ -58,7 +63,7 @@ runs:
     - id: docker_meta
       uses: docker/metadata-action@v3.5.0
       with:
-        images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}
+        images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
 
     - uses: docker/setup-buildx-action@v1
 
@@ -72,9 +77,9 @@ runs:
       with:
         context: ${{ inputs.docker-context }}
         file: ${{ inputs.docker-file }}
-        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
-        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:nightly
+        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
         cache-to: type=inline
         platforms: ${{ inputs.platforms }}
         load: true
@@ -83,7 +88,7 @@ runs:
 
     - shell: bash {0}
       run: |
-        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
         until docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
         do
@@ -101,10 +106,10 @@ runs:
         echo "Container started up successfully!"
 
     - shell: bash
-      run: docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+      run: docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
 
     - shell: bash
-      run: docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }} ${{ steps.docker_meta.outputs.tags }}
+      run: docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }} ${{ steps.docker_meta.outputs.tags }}
 
     - shell: bash
       run: docker push ${{ steps.docker_meta.outputs.tags }}
