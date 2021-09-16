@@ -87,16 +87,18 @@ runs:
         counter=0
         until docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
         do
-          echo "Waiting to startup container..."
+          echo "Waiting for container to start up..."
           sleep 5
 
           if [ $counter -gt 20 ]
           then
+            echo "Exiting after $counter retries!"
             exit 1
           fi
           
           ((counter++))
         done
+        echo "Container started up successfully!"
 
     - shell: bash
       run: docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
