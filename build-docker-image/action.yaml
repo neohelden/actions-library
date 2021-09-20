@@ -1,5 +1,6 @@
 name: 'build-docker-image'
 description: 'Builds and releases a Docker container'
+
 inputs:
   container-verify-cmd:
     description: 'Log entry which shows up if the container starts up successfully after build'
@@ -48,7 +49,6 @@ runs:
   using: "composite"
   steps: 
     - uses: actions/checkout@v2
-
 
     - shell: bash
       id: image-name

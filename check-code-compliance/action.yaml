@@ -1,0 +1,54 @@
+name: Check Code Compliance
+description: Checks the code and dependencies for compliant licenses
+
+inputs:
+  artifact-name: 
+    description: Name of the artifact. Default is derived from the repo name.
+    required: false
+    default: ${{ github.event.repository.name }}
+  
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: yarn
+      working-directory: ./
+      shell: bash
+      
+    - name: Audit dependencies
+      run: npx audit-ci --high
+      shell: bash
+      working-directory: ./
+      
+    - name: Check Licenses
+      working-directory: ./
+      shell: bash
+      run: |
+        npx license-checker \
+            --onlyAllow="Python-2.0;MIT;Apache-2.0;BSD-3-Clause;ISC;MIT OR Apache-2.0;BSD-2-Clause;BSD;Apache*;Apache 2.0;Unlicense;CC0-1.0;Public Domain;WTFPL;CC-BY-4.0;VOL" \
+            --excludePackages="weak-map@1.0.5;map-stream@0.1.0;cordova-plugin-keyboard@1.2.0;spdx-exceptions@2.2.0;spdx-exceptions@2.3.0;create-temp-file@1.0.0;deepspeech@0.7.3;hash-to-array@1.0.1" \
+            --excludePrivatePackages \
+            --csv --out licenses.csv
+
+    - name: Upload license file
+      uses: actions/upload-artifact@v2
+      with:
+        name: Licenses - ${{ inputs.artifact-name }}
+        path: ./licenses.csv
+        retention-days: 30
+
+    - name: Generate CycloneDX SBOM
+      working-directory: ./
+      run: npx @cyclonedx/bom -o bom.xml
+      shell: bash
+
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v2
+      with:
+        name: BOM - ${{ inputs.artifact-name }}
+        path: ./bom.xml
+        retention-days: 30
