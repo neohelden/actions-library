@@ -1,0 +1,36 @@
+name: Build and Test
+description: Builds and tests code using yarn
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v2
+
+    - name: Prettier
+      run: |
+        yarn
+        yarn prettier
+      working-directory: ./
+      shell: bash
+
+    - name: Lint
+      run: |
+        yarn
+        yarn eslint
+      working-directory: ./
+      shell: bash
+
+    - name: Build
+      run: |
+        if exit | yarn run 2>&1 | grep "\- build"
+        then
+          yarn
+          yarn build
+        else
+          echo "No build script defined - ignoring"
+        fi
+      working-directory: ./
+      shell: bash
+
+## TODO add step for testing
