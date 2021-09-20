@@ -38,6 +38,11 @@ inputs:
     description: Comma-separated list of platforms the Docker image gets built for
     required: false
     default: linux/amd64
+  docker-push-build-args:
+    description: Build Args used when building the Docker image
+    required: false 
+    default: ""
+
 
 runs:
   using: "composite"
@@ -85,6 +90,7 @@ runs:
         load: true
         pull: true
         push: false
+        build-args: ${{ inputs.docker-push-build-args }}
 
     - shell: bash {0}
       run: |
