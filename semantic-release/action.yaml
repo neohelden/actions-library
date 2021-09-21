@@ -15,6 +15,8 @@ runs:
   using: "composite"
   steps: 
     - uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 0
 
     - uses: actions/setup-node@v2.4.0
       with:
@@ -23,10 +25,10 @@ runs:
     - shell: bash
       run: |
         sudo npm install -g \
-          semantic-release@17.1.2 \
-          @semantic-release/git@9.0.0 \
-          @semantic-release/release-notes-generator@9.0.1 \
-          @semantic-release/github@7.1.1
+          semantic-release@18.0.0 \
+          @semantic-release/git@10.0.0 \
+          @semantic-release/release-notes-generator@10.0.2 \
+          @semantic-release/github@8.0.0
 
     # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
     - id: generate_token
@@ -36,6 +38,12 @@ runs:
         private_key: ${{ inputs.gh-app-priv-key }}
 
     - shell: bash
-      run: semantic-release --branches ${{ inputs.release-branch }} --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github" --tag-format \${version} --debug true
+      run: |
+        semantic-release \
+          --branches ${{ inputs.release-branch }} \
+          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github" \
+          --tag-format \${version} \
+          --debug true
       env:
+        GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
