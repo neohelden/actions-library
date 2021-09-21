@@ -83,7 +83,9 @@ runs:
       with:
         context: ${{ inputs.docker-context }}
         file: ${{ inputs.docker-file }}
-        tags: ${{ steps.docker_meta.outputs.tags }}
+        tags: |
+          ${{ steps.docker_meta.outputs.tags }}
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
         cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
         cache-to: type=inline
@@ -96,7 +98,7 @@ runs:
     - name: Test Docker image
       shell: bash {0}
       run: |
-        docker run -d --rm --name verify ${{ steps.docker_meta.outputs.tags }}
+        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
         until docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
         do
@@ -118,12 +120,14 @@ runs:
       with:
         context: ${{ inputs.docker-context }}
         file: ${{ inputs.docker-file }}
-        tags: ${{ steps.docker_meta.outputs.tags }}
+        tags: |
+          ${{ steps.docker_meta.outputs.tags }}
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         platforms: ${{ inputs.platforms }}
         push: true
         build-args: ${{ inputs.docker-push-build-args }}
 
-    - shell: bash
-      run: |
-        docker tag ${{ steps.docker_meta.outputs.tags }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
-        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+    #- shell: bash
+    #  run: |
+    #    docker tag ${{ steps.docker_meta.outputs.tags }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+    #    docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
