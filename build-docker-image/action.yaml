@@ -100,14 +100,14 @@ runs:
       run: |
         docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
-        until docker logs verify  2>&1 | ${{ inputs.container-verify-cmd }}
+        until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
         do
-          docker logs verify  2>&1
 
           echo "Waiting for container to start up..."
           sleep 5
 
-          
+          docker ps -a 2>&1
+          docker logs verify 2>&1
 
           if [ $counter -gt 20 ]
           then
@@ -130,8 +130,3 @@ runs:
         platforms: ${{ inputs.platforms }}
         push: true
         build-args: ${{ inputs.docker-push-build-args }}
-
-    #- shell: bash
-    #  run: |
-    #    docker tag ${{ steps.docker_meta.outputs.tags }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
-    #    docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
