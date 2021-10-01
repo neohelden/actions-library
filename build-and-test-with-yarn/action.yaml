@@ -41,8 +41,8 @@ inputs:
     default: "true"
     required: false
   default-branch:
-    description: Default development branch of this github.event.repository.name
-    default: ${{ github.event.repo.default_branch }}
+    description: Default development branch of this repository
+    default: ${{ github.event.repository.default_branch }}
     required: false
 
 runs:
@@ -102,7 +102,7 @@ runs:
           --request POST \
           --header "Content-Type: application/x-www-form-urlencoded" \
           -u ${{ inputs.sonar-token }} \
-          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&&name=${{ inputs.default-branch }}' \
+          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&name=${{ inputs.default-branch }}' \
           'https://sonarcloud.io/api/project_branches/rename'
       shell: bash
 
