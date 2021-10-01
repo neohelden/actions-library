@@ -40,6 +40,10 @@ inputs:
     description: Debug output for Sonar Scan
     default: true
     required: false
+  default-branch:
+    description: Default development branch of this github.event.repository.name
+    default: ${{ event.repo.default_branch }}
+    required: false
 
 runs:
   using: "composite"
@@ -93,6 +97,13 @@ runs:
           -u ${{ inputs.sonar-token }} \
           -d 'project=neohelden-${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
           'https://sonarcloud.io/api/projects/create'
+
+        curl --include \
+          --request POST \
+          --header "Content-Type: application/x-www-form-urlencoded" \
+          -u ${{ inputs.sonar-token }} \
+          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&&name=${{ inputs.default-branch }}' \
+          'https://sonarcloud.io/api/project_branches/rename'
       shell: bash
 
     - name: SonarCloud Scan
