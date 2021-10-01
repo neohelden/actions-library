@@ -63,7 +63,7 @@ runs:
 
     - name: Test
       run: |
-        if exit | yarn run 2>&1 | grep "\- build"
+        if exit | yarn run 2>&1 | grep "\- test"
         then
           yarn
           yarn test
