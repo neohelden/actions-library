@@ -1,6 +1,46 @@
 name: Build and Test
 description: Builds and tests code using yarn
 
+inputs:
+  sonar-token:
+    description: 'Token used for pushing test results to SonarCloud.io'
+    required: true
+  github-token:
+    description: 'Token used for accessing GitHub.com'
+    required: true
+  sonar-project-base-dir:
+    description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
+    default: ./
+    required: false
+  sonar-organization:
+    description: The key of the organization to which the project belongs.
+    default: neohelden
+    required: false
+  sonar-projectKey:
+    description: The project's unique key. Allowed characters are letters, numbers, -, _, . and :, with at least one non-digit.
+    default: ${{ github.event.repository.name }}
+    required: false
+  sonar-sources:
+    description: Comma-separated paths to directories containing main source files.
+    default: src/
+    required: false
+  sonar-test-exclusions:
+    description: One or more path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+    default: test/**
+    required: false
+  sonar-tests:
+    description: Holds a comma-delimited list of directories (not a path matching pattern) relative to the current working directory.
+    default: test/
+    required: false
+  sonar-lcov-reportpaths:
+    description: Comma-delimited list of paths to LCOV coverage report files. Paths may be absolute or relative to the project root.
+    default: coverage/lcov.info
+    required: false
+  sonar-verbose:
+    description: Debug output for Sonar Scan
+    default: true
+    required: false
+
 runs:
   using: "composite"
 
@@ -21,6 +61,18 @@ runs:
       working-directory: ./
       shell: bash
 
+    - name: Test
+      run: |
+        if exit | yarn run 2>&1 | grep "\- build"
+        then
+          yarn
+          yarn test
+        else
+          echo "No test script defined - ignoring"
+        fi
+      working-directory: ./
+      shell: bash
+
     - name: Build
       run: |
         if exit | yarn run 2>&1 | grep "\- build"
@@ -33,4 +85,28 @@ runs:
       working-directory: ./
       shell: bash
 
-## TODO add step for testing
+    - name: Prepare SonarCloud
+      run: |
+        curl --include \
+          --request POST \
+          --header "Content-Type: application/x-www-form-urlencoded" \
+          -u ${{ inputs.sonar-token }} \
+          -d 'project=${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
+          'https://sonarcloud.io/api/projects/create'
+      shell: bash
+
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      with:
+        projectBaseDir: ${{ inputs.sonar-project-base-dir }}
+        args: >
+          -Dsonar.organization=${{ inputs.sonar-organization }}
+          -Dsonar.projectKey=${{ inputs.sonar-projectKey }}
+          -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
+          -Dsonar.sources=${{ inputs.sonar-sources }}
+          -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
+          -Dsonar.tests=${{ inputs.sonar-tests }}
+          -Dsonar.verbose=${{ inputs.sonar-verbose }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        SONAR_TOKEN: ${{ inputs.sonar-token }}
