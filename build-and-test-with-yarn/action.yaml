@@ -38,11 +38,11 @@ inputs:
     required: false
   sonar-verbose:
     description: Debug output for Sonar Scan
-    default: true
+    default: "true"
     required: false
   default-branch:
     description: Default development branch of this github.event.repository.name
-    default: ${{ event.repo.default_branch }}
+    default: ${{ github.event.repo.default_branch }}
     required: false
 
 runs:
