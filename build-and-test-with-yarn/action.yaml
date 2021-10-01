@@ -38,7 +38,7 @@ inputs:
     required: false
   sonar-verbose:
     description: Debug output for Sonar Scan
-    default: "true"
+    default: "false"
     required: false
   default-branch:
     description: Default development branch of this repository
