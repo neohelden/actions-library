@@ -3,10 +3,10 @@ description: Builds and tests code using yarn
 
 inputs:
   sonar-token:
-    description: 'Token used for pushing test results to SonarCloud.io'
+    description: "Token used for pushing test results to SonarCloud.io"
     required: true
   github-token:
-    description: 'Token used for accessing GitHub.com'
+    description: "Token used for accessing GitHub.com"
     required: true
   sonar-project-base-dir:
     description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
@@ -91,7 +91,7 @@ runs:
           --request POST \
           --header "Content-Type: application/x-www-form-urlencoded" \
           -u ${{ inputs.sonar-token }} \
-          -d 'project=${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
+          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
           'https://sonarcloud.io/api/projects/create'
       shell: bash
 
@@ -101,7 +101,7 @@ runs:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
         args: >
           -Dsonar.organization=${{ inputs.sonar-organization }}
-          -Dsonar.projectKey=${{ inputs.sonar-projectKey }}
+          -Dsonar.projectKey=neohelden-${{ inputs.sonar-projectKey }}
           -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
           -Dsonar.sources=${{ inputs.sonar-sources }}
           -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
