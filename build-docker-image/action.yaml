@@ -51,7 +51,7 @@ runs:
 
     - shell: bash
       id: image-name
-      run: echo "::set-output name=value::$(echo '${{ inputs.image_name }} || ${{ github.repository }}' | awk -F '/' '{print $2}')"
+      run: echo "::set-output name=value::$(echo '${{ inputs.image-name }} || ${{ github.repository }}' | awk -F '/' '{print $2}')"
 
     # use specific commit-sha to be sure this is not changed
     - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
