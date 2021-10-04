@@ -11,7 +11,7 @@ inputs:
     description: Branch name where releases are built from
     required: false
     default: main
-  extra-plugins:
+  release-extra-plugins:
     description: Comma seperated list of extra plugins to load for the sematic-release package
     required: false
 runs:
@@ -37,7 +37,7 @@ runs:
       name: Install ${{ inputs.extra-plugins }}
       run: |
         IFS=,
-        PLUGINS=(${{inputs.extra-plugins}})
+        PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
         done
@@ -53,7 +53,7 @@ runs:
       run: |
         semantic-release \
           --branches ${{ inputs.release-branch }} \
-          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github,${{ inputs.extra-plugins }}" \
+          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github,${{ inputs.release-extra-plugins }}" \
           --tag-format \${version} \
           --debug true
       env:
