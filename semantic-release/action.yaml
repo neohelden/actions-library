@@ -1,5 +1,5 @@
-name: 'semantic-release'
-description: 'Creates a Semantic Release'
+name: "semantic-release"
+description: "Creates a Semantic Release"
 inputs:
   gh-app-id:
     description: Id of a Github App used to trigger follow-up Github Action workflows
@@ -7,20 +7,23 @@ inputs:
   gh-app-priv-key:
     description: Private key of a Github App used to trigger follow-up Github Action workflows
     required: true
-  release-branch: 
+  release-branch:
     description: Branch name where releases are built from
     required: false
     default: main
+  extra-plugins:
+    description: Comma seperated list of extra plugins to load for the sematic-release package
+    required: false
 runs:
   using: "composite"
-  steps: 
+  steps:
     - uses: actions/checkout@v2.3.4
       with:
         fetch-depth: 0
 
     - uses: actions/setup-node@v2.4.0
       with:
-        node-version: '14'
+        node-version: "14"
 
     - shell: bash
       run: |
@@ -29,6 +32,15 @@ runs:
           @semantic-release/git@10.0.0 \
           @semantic-release/release-notes-generator@10.0.2 \
           @semantic-release/github@8.0.0
+
+    - shell: bash
+      name: Install ${{ inputs.extra-plugins }}
+      run: |
+        IFS=,
+        PLUGINS=(${{inputs.extra-plugins}})
+        for PLUGIN in ${PLUGINS[@]}; do
+          sudo npm install -g ${PLUGIN};
+        done
 
     # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
     - id: generate_token
@@ -41,7 +53,7 @@ runs:
       run: |
         semantic-release \
           --branches ${{ inputs.release-branch }} \
-          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github" \
+          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github,${{ inputs.extra-plugins }}" \
           --tag-format \${version} \
           --debug true
       env:
