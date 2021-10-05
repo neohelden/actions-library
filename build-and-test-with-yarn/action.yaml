@@ -30,7 +30,7 @@ inputs:
     required: false
   sonar-exclusions:
     description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
-    default: "**/*.spec.ts"
+    default: "**/*.test.ts"
     required: false
   sonar-tests:
     description: Holds a comma-delimited list of directories (not a path matching pattern) relative to the current working directory.
@@ -38,7 +38,7 @@ inputs:
     required: false
   sonar-test-inclusions:
     description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
-    default: "**/*.spec.ts"
+    default: "**/*.test.ts"
     required: false
   sonar-test-exclusions:
     description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
