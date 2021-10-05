@@ -33,7 +33,7 @@ runs:
         if [ $(jq -r .private package.json) = "false" ] && exit | yarn run 2>&1 | grep "\- build"
         then
           yarn
-          yarn build
+          npx build
         else
           echo "No build script defined - ignoring"
         fi
