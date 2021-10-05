@@ -24,13 +24,25 @@ inputs:
     description: Comma-separated paths to directories containing main source files.
     default: src/
     required: false
-  sonar-test-exclusions:
-    description: One or more path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
-    default: test/**
+  sonar-inclusions:
+    description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.sources`.
+    default: "**/*.ts"
+    required: false
+  sonar-exclusions:
+    description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
+    default: "**/*.test.ts"
     required: false
   sonar-tests:
     description: Holds a comma-delimited list of directories (not a path matching pattern) relative to the current working directory.
-    default: test/
+    default: src/
+    required: false
+  sonar-test-inclusions:
+    description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
+    default: "**/*.test.ts"
+    required: false
+  sonar-test-exclusions:
+    description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+    default: ""
     required: false
   sonar-lcov-reportpaths:
     description: Comma-delimited list of paths to LCOV coverage report files. Paths may be absolute or relative to the project root.
@@ -117,8 +129,11 @@ runs:
           -Dsonar.projectKey=neohelden-${{ inputs.sonar-projectKey }}
           -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
           -Dsonar.sources=${{ inputs.sonar-sources }}
-          -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
+          -Dsonar.inclusions=${{ inputs.sonar-inclusions }}
+          -Dsonar.exclusions=${{ inputs.sonar-exclusions }}
           -Dsonar.tests=${{ inputs.sonar-tests }}
+          -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
+          -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
