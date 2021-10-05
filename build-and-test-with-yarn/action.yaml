@@ -25,11 +25,11 @@ inputs:
     default: src/
     required: false
   sonar-inclusions:
-    description: One or more path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.sources`.
+    description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.sources`.
     default: "**/*.ts"
     required: false
   sonar-exclusions:
-    description: One or more path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
+    description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
     default: "**/*.spec.ts"
     required: false
   sonar-tests:
@@ -37,11 +37,11 @@ inputs:
     default: src/
     required: false
   sonar-test-inclusions:
-    description: One or more path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
+    description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
     default: "**/*.spec.ts"
     required: false
   sonar-test-exclusions:
-    description: One or more path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+    description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
     default: ""
     required: false
   sonar-lcov-reportpaths:
