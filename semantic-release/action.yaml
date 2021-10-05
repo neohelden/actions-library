@@ -30,7 +30,7 @@ runs:
 
     - name: Build the Code
       run: |
-        if [ $(jq .public package.json) = "true" ] && exit | yarn run 2>&1 | grep "\- build"
+        if [ $(jq -r .private package.json) = "false" ] && exit | yarn run 2>&1 | grep "\- build"
         then
           yarn
           yarn build
