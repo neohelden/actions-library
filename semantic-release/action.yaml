@@ -28,6 +28,18 @@ runs:
       with:
         node-version: "14"
 
+    - name: Build the Code
+      run: |
+        if [ $(jq .public package.json) = "true" ] && exit | yarn run 2>&1 | grep "\- build"
+        then
+          yarn
+          yarn build
+        else
+          echo "No build script defined - ignoring"
+        fi
+      working-directory: ./
+      shell: bash
+
     - shell: bash
       run: |
         sudo npm install -g \
