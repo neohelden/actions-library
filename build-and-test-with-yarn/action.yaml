@@ -86,7 +86,7 @@ runs:
         FILE=yarn.lock
         if [ -f "$FILE" ]
         then
-          npx 
+          yarn --frozen-lockfile 
         else
           echo "$FILE does not exist - exiting"
           exit 1
