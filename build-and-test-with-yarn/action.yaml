@@ -100,7 +100,7 @@ runs:
         then
           echo "'prettier' is not configured for this project - ignoring"
         else
-          npx prettier --check ${{ inputs.prettier-source-paths }}"
+          npx prettier --check "${{ inputs.prettier-source-paths }}"
         fi
       working-directory: ./
       shell: bash
