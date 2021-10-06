@@ -17,6 +17,11 @@ inputs:
   npm-automation-token:
     description: Automation token for NPM to publish packages
     required: false
+  tsconfig-build-file:
+    description: tsconfig file used for building the project.
+    default: tsconfig.build.json
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -30,17 +35,19 @@ runs:
 
     - name: Build the Code
       run: |
-        if [ $(jq -r .private package.json) = "false" ] && exit | yarn run 2>&1 | grep "\- build"
+        FILE=${{ inputs.tsconfig-build-file }}
+
+        if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
         then
-          yarn
-          yarn build
+          npx tsc -p "$FILE"
         else
-          echo "No build script defined - ignoring"
+          echo "Project is private or $FILE does not exist - ignoring"
         fi
       working-directory: ./
       shell: bash
 
-    - shell: bash
+    - name: Install semantic-release
+      shell: bash
       run: |
         sudo npm install -g \
           semantic-release@18.0.0 \
@@ -48,8 +55,8 @@ runs:
           @semantic-release/release-notes-generator@10.0.2 \
           @semantic-release/github@8.0.0
 
-    - shell: bash
-      name: Install ${{ inputs.extra-plugins }}
+    - name: Install ${{ inputs.extra-plugins }}
+      shell: bash
       run: |
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})

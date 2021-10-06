@@ -56,6 +56,22 @@ inputs:
     description: Default development branch of this repository
     default: ${{ github.event.repository.default_branch }}
     required: false
+  tsconfig-build-file:
+    description: tsconfig file used for building the project.
+    default: tsconfig.build.json
+    required: false
+  prettier-source-paths:
+    description: Comma separated list of paths/patterns used by prettier to check
+    default: src/**/*.ts
+    required: false
+  eslint-ext-patterns:
+    description: Comma separated list of file patterns eslint will check
+    default: .js,.jsx,.ts,.tsx
+    required: false
+  eslint-configuration-file:
+    description: Configuration file used by 'eslint'
+    default: .eslintrc
+    required: false
 
 runs:
   using: "composite"
@@ -63,42 +79,64 @@ runs:
   steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        fetch-depth: 0 ## fix shallow clone detected by SonarCloud.io
+
+    - name: Resolve yarn dependencies
+      run: |
+        FILE=yarn.lock
+        if [ -f "$FILE" ]
+        then
+          yarn --frozen-lockfile 
+        else
+          echo "$FILE does not exist - exiting"
+          exit 1
+        fi
+      working-directory: ./
+      shell: bash
 
     - name: Prettier
       run: |
-        yarn
-        yarn prettier
-      working-directory: ./
-      shell: bash
-
-    - name: Lint
-      run: |
-        yarn
-        yarn eslint
-      working-directory: ./
-      shell: bash
-
-    - name: Test
-      run: |
-        if exit | yarn run 2>&1 | grep "\- test"
+        if [ $(jq -r .devDependencies.prettier package.json) = "null" ] && exit
         then
-          yarn
-          yarn test
+          echo "'prettier' is not configured for this project - ignoring"
         else
-          echo "No test script defined - ignoring"
+          npx prettier --check "${{ inputs.prettier-source-paths }}"
+        fi
+      working-directory: ./
+      shell: bash
+
+    - name: ESLint
+      run: |
+        FILE=${{ inputs.eslint-configuration-file }}
+        if [ -f "$FILE" ]
+        then
+          npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
+        else
+          echo "'${{ inputs.eslint-configuration-file }}' does not exist - ignoring"
         fi
       working-directory: ./
       shell: bash
 
     - name: Build
       run: |
-        if exit | yarn run 2>&1 | grep "\- build"
+        FILE=${{ inputs.tsconfig-build-file }}
+
+        if [ -f "$FILE" ]
         then
-          yarn
-          yarn build
+          npx tsc -p "$FILE"
         else
-          echo "No build script defined - ignoring"
+          echo "$FILE does not exist - ignoring"
+        fi
+      working-directory: ./
+      shell: bash
+
+    - name: Test
+      run: |
+        if [ $(jq -r .devDependencies.jest package.json) = "null" ] && exit
+        then
+          echo "'jest' is not configured for this project - ignoring"
+        else
+          npx jest --ci --coverage
         fi
       working-directory: ./
       shell: bash

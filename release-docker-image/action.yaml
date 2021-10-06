@@ -1,7 +1,7 @@
-name: 'release-docker-image'
+name: "release-docker-image"
 description: Tags a Docker Image with released version and signs it using Notary.
 inputs:
-  image-registry: 
+  image-registry:
     description: Container registry where to push container images too
     required: false
     default: registry.neohelden.com
@@ -15,11 +15,11 @@ inputs:
     description: Organization within the image registry where to push container images too
     required: false
     default: neohelden
-  image-name: 
+  image-name:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
-  
+
 runs:
   using: "composite"
   steps:
@@ -32,11 +32,11 @@ runs:
     - shell: bash
       run: |
         cat <<EOF > Dockerfile
-        FROM  ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
+        FROM ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
         EOF
 
     - uses: docker/build-push-action@v2
       with:
         context: .
-        tags:  ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
         push: true
