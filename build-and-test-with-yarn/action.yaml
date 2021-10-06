@@ -105,7 +105,7 @@ runs:
       working-directory: ./
       shell: bash
 
-    - name: Eslint
+    - name: ESLint
       run: |
         FILE=${{ inputs.eslint-configuration-file }}
         if [ -f "$FILE" ]
