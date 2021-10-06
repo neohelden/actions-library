@@ -136,7 +136,7 @@ runs:
         then
           echo "'jest' is not configured for this project - ignoring"
         else
-          npx jest
+          npx jest --ci --coverage
         fi
       working-directory: ./
       shell: bash
