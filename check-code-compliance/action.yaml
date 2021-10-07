@@ -13,7 +13,9 @@ inputs:
     description: Path to JSON config file used for configuring audit-ci (e.g. for allowing certain CVEs)
     default: "audit-ci.json"
     required: false
-
+  repo-ssh-key:
+    description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
+    required: true
 
 runs:
   using: "composite"
@@ -26,13 +28,25 @@ runs:
       working-directory: ./
       shell: bash
 
+    - name: Load global audit-ci config
+      shell: bash
+      working-directory: /tmp
+      env:
+        GIT_SSH_COMMAND: "ssh -i /tmp/audit_ci_key -o IdentitiesOnly=yes"
+      run: |
+        echo "${{ inputs.repo-ssh-key }}" >> /tmp/audit_ci_key
+        chmod 600 /tmp/audit_ci_key
+        git clone git@github.com:neohelden/global-audit-ci-config.git config
+        mv config/audit-ci.json /tmp/common_audit_ci.json
+
     - name: Audit dependencies
       run: |
         FILE=${{ inputs.audit-ci-config }}
-        
+
         if [ ! -z "$FILE" ] && [ -f "$FILE" ]
         then
-          npx audit-ci --high --config=$FILE
+          jq --argjson arr1 "$(cat /tmp/common_audit_ci.json)" --argjson arr2 "$(cat $FILE)" -n '{allowlist: [$arr1["allowlist"] + $arr2["allowlist"]]}' > /tmp/audit_ci.rendered.json
+          npx audit-ci --high --config=/tmp/audit_ci.rendered.json
 
           commitMiliseconds=$(git log --format="%at" -- $FILE)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
@@ -43,7 +57,7 @@ runs:
             exit 1
           fi
         else
-          npx audit-ci --high
+          npx audit-ci --high --config /tmp/common_audit_ci.json
         fi
 
       shell: bash
