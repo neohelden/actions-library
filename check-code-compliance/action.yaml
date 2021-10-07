@@ -9,6 +9,11 @@ inputs:
   license-exclude-packages:
     description: Semicolon separated list of packages to exclude from the license check
     required: false
+  audit-ci-config:
+    description: Path to JSON config file used for configuring audit-ci (e.g. for allowing certain CVEs)
+    default: "audit-ci.json"
+    required: false
+
 
 runs:
   using: "composite"
@@ -22,7 +27,25 @@ runs:
       shell: bash
 
     - name: Audit dependencies
-      run: npx audit-ci --high
+      run: |
+        FILE=${{ inputs.audit-ci-config }}
+        
+        if [ ! -z "$FILE" ] && [ -f "$FILE" ]
+        then
+          npx audit-ci --high --config=$FILE
+
+          commitMiliseconds=$(git log --format="%at" -- $FILE)
+          sevenDaysInThePast=$(date --date '- 7days' +%s)
+
+          if [ "$(jq -r .allowlist $FILE)" != "null" ] && [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && exit
+          then
+            echo "File $FILE is older than 7 days. Please review and amend!"
+            exit 1
+          fi
+        else
+          npx audit-ci --high
+        fi
+
       shell: bash
       working-directory: ./
 
