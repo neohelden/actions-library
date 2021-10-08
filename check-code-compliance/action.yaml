@@ -45,7 +45,7 @@ runs:
           commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
           
-          if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
+          if [ "$(jq -r .allowlist $FILE)" != "null" ] && [ "$(jq -r .allowlist $FILE)" != "[]" ] && \
             [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
             exit
           then
@@ -60,7 +60,7 @@ runs:
           mkdir config
           echo '{"allowlist":[]}' > config/audit-ci.json;
         fi
-      
+
         mv config/audit-ci.json /tmp/common_audit_ci.json
 
     - name: Audit dependencies
