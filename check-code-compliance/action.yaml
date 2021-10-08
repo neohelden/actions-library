@@ -15,7 +15,7 @@ inputs:
     required: false
   repo-ssh-key:
     description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
-    required: true
+    required: false
 
 runs:
   using: "composite"
@@ -34,30 +34,66 @@ runs:
       env:
         GIT_SSH_COMMAND: "ssh -i /tmp/audit_ci_key -o IdentitiesOnly=yes"
       run: |
-        echo "${{ inputs.repo-ssh-key }}" >> /tmp/audit_ci_key
-        chmod 600 /tmp/audit_ci_key
-        git clone git@github.com:neohelden/global-audit-ci-config.git config
+        if [ -n "${{ inputs.repo-ssh-key }}" ]
+        then
+          echo "Getting global-audit-ci-config from git"
+          echo "${{ inputs.repo-ssh-key }}" > /tmp/audit_ci_key
+          chmod 600 /tmp/audit_ci_key
+          git clone git@github.com:neohelden/global-audit-ci-config.git config;
+
+          cd config
+          commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
+          sevenDaysInThePast=$(date --date '- 7days' +%s)
+          
+          if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
+            [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
+            exit
+          then
+            echo "Global audit file 'neohelden/global-audit-ci-config/audit-ci.json' is older than 7 days. Please review and amend!"
+            exit 1
+          fi
+          # we are still in folder 'config/'
+          cd ..
+
+        else
+          echo "Creating empty global config"
+          mkdir config
+          echo '{"allowlist":[]}' > config/audit-ci.json;
+        fi
+      
         mv config/audit-ci.json /tmp/common_audit_ci.json
 
     - name: Audit dependencies
       run: |
-        FILE=${{ inputs.audit-ci-config }}
+        LOCAL_FILE=${{ inputs.audit-ci-config }}
+        GLOBAL_FILE=/tmp/common_audit_ci.json
+        MERGED_FILE=/tmp/audit_ci.rendered.json
 
-        if [ ! -z "$FILE" ] && [ -f "$FILE" ]
+        if [ -n "$LOCAL_FILE" ] && \
+          [ -f "$LOCAL_FILE" ]
         then
-          jq --argjson arr1 "$(cat /tmp/common_audit_ci.json)" --argjson arr2 "$(cat $FILE)" -n '{allowlist: [$arr1["allowlist"] + $arr2["allowlist"]]}' > /tmp/audit_ci.rendered.json
-          npx audit-ci --high --config=/tmp/audit_ci.rendered.json
+          jq --argjson global "$(cat $GLOBAL_FILE)" \
+            --argjson local "$(cat $LOCAL_FILE)" \
+            -n '{allowlist: [$global["allowlist"] + $local["allowlist"]]}' > \
+            $MERGED_FILE
+
+          echo "Using audit-ci config: $(cat $MERGED_FILE)"
+          
+          npx audit-ci --high --config=$MERGED_FILE
 
           commitMiliseconds=$(git log --format="%at" -- $FILE)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
 
-          if [ "$(jq -r .allowlist $FILE)" != "null" ] && [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && exit
+          if [ "$(jq -r .allowlist $LOCAL_FILE)" != "null" ] && \
+            [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
+            exit
           then
-            echo "File $FILE is older than 7 days. Please review and amend!"
+            echo "File $LOCAL_FILE is older than 7 days. Please review and amend!"
             exit 1
           fi
         else
-          npx audit-ci --high --config /tmp/common_audit_ci.json
+          echo "Using audit-ci config: $(cat $GLOBAL_FILE)"
+          npx audit-ci --high --config $GLOBAL_FILE
         fi
 
       shell: bash
@@ -68,10 +104,25 @@ runs:
       shell: bash
       run: |
         npx license-checker \
-            --onlyAllow="Python-2.0;MIT;Apache-2.0;BSD-3-Clause;ISC;MIT OR Apache-2.0;BSD-2-Clause;BSD;Apache*;Apache 2.0;Unlicense;CC0-1.0;Public Domain;WTFPL;CC-BY-4.0;VOL" \
+            --onlyAllow="Python-2.0; \
+              MIT; \
+              Apache-2.0; \
+              BSD-3-Clause; \
+              ISC; \
+              MIT OR Apache-2.0; \
+              BSD-2-Clause; \
+              BSD;Apache*; \
+              Apache 2.0; \
+              Unlicense; \
+              CC0-1.0; \
+              Public Domain; \
+              WTFPL; \
+              CC-BY-4.0; \
+              VOL" \
             --excludePackages="${{ inputs.license-exclude-packages }}" \
             --excludePrivatePackages \
-            --csv --out licenses.csv
+            --csv \
+            --out licenses.csv
 
     - name: Upload license file
       uses: actions/upload-artifact@v2
