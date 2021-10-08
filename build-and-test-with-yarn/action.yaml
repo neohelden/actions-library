@@ -193,5 +193,5 @@ runs:
             -Dsonar.tests=${{ inputs.sonar-tests }} \
             -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }} \
             -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }} \
-            -Dsonar.verbose=${{ inputs.sonar-verbose }};
+            -Dsonar.verbose=true;
         fi
