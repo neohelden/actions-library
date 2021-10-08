@@ -1,11 +1,11 @@
-name: 'build-docker-image'
-description: 'Builds and releases a Docker container'
+name: "build-docker-image"
+description: "Builds and releases a Docker container"
 
 inputs:
   container-verify-cmd:
-    description: 'Log entry which shows up if the container starts up successfully after build'
+    description: "Log entry which shows up if the container starts up successfully after build"
     required: true
-  image-registry: 
+  image-registry:
     description: url to the container registry where to push container images too
     required: false
     default: registry.neohelden.com
@@ -19,12 +19,12 @@ inputs:
     description: Organization within the image registry where to push container images too
     required: false
     default: neohelden
-  image-name: 
+  image-name:
     description: Name of the container image. Default is derived from the repo name.
     required: false
     default: ${{ github.event.repository.name }}
   image-tag:
-    description: Tag of the container image 
+    description: Tag of the container image
     required: false
     default: ${{ github.event.pull_request.head.sha || github.sha }}
   docker-file:
@@ -41,12 +41,12 @@ inputs:
     default: linux/amd64
   docker-push-build-args:
     description: Build Args used when building the Docker image
-    required: false 
+    required: false
     default: ""
 
 runs:
   using: "composite"
-  steps: 
+  steps:
     - uses: actions/checkout@v2
 
     - shell: bash
@@ -62,9 +62,9 @@ runs:
     # use specific commit-sha to be sure this is not changed
     - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
+        remove-dotnet: "true"
+        remove-android: "true"
+        remove-haskell: "true"
         build-mount-path: /var/lib/docker
 
     - shell: bash
@@ -74,7 +74,7 @@ runs:
       uses: docker/metadata-action@v3.5.0
       with:
         images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
-      
+
     - uses: docker/setup-buildx-action@v1
 
     - shell: bash
@@ -83,7 +83,6 @@ runs:
         then
           echo ${{ inputs.image-registry-token }} | docker login ${{ inputs.image-registry }} --username '${{ inputs.image-registry-username }}' --password-stdin
         fi
-
 
     - name: Build Docker Image
       uses: docker/build-push-action@v2
@@ -125,7 +124,7 @@ runs:
           ((counter++))
         done
         echo "Container started up successfully!"
-    
+
     - name: Push Docker image
       shell: bash
       run: |
@@ -138,3 +137,8 @@ runs:
             docker push $tag;
           done;
         fi
+
+    - name: Scan image for vulnerabilities
+      uses: azure/container-scan@v0
+      with:
+        image-name: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
