@@ -188,7 +188,7 @@ runs:
             -v "/home/runner/work/_temp/_github_home":"/github/home" \
             -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" \
             -v "/home/runner/work/_temp/_runner_file_commands":"/github/file_commands" \
-            -v "/home/runner/work":""/home/runner/work" \
+            -v "/home/runner/work":"/home/runner/work" \
             -v "$(pwd)":"/github/workspace" \
             sonarsource/sonar-scanner-cli:4.6 \
             -Dsonar.projectBaseDir=${{ inputs.sonar-project-base-dir }} -Dsonar.host.url=${SONARCLOUD_URL} \
