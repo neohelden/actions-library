@@ -161,6 +161,12 @@ runs:
         fi
       shell: bash
 
+    - name: Tree
+      shell: bash
+      run: |
+        apt-get install -y tree
+        tree /github
+
     - name: SonarCloud Scan
       shell: bash
       env:
