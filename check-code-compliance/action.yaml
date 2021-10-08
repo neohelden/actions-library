@@ -52,6 +52,8 @@ runs:
             echo "Global audit file 'neohelden/global-audit-ci-config/audit-ci.json' is older than 7 days. Please review and amend!"
             exit 1
           fi
+          # we are still in folder 'config/'
+          cd ..
 
         else
           echo "Creating empty global config"
