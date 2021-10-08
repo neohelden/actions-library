@@ -34,59 +34,64 @@ runs:
       env:
         GIT_SSH_COMMAND: "ssh -i /tmp/audit_ci_key -o IdentitiesOnly=yes"
       run: |
-        echo "${{ inputs.repo-ssh-key }}" > /tmp/audit_ci_key
-        chmod 600 /tmp/audit_ci_key
-
-        if [[ -z $(grep '[^[:space:]]' /tmp/audit_ci_key ) ]]
+        if [ -n "${{ inputs.repo-ssh-key }}" ]
         then
+          echo "Getting global-audit-ci-config from git"
+          echo "${{ inputs.repo-ssh-key }}" > /tmp/audit_ci_key
+          chmod 600 /tmp/audit_ci_key
           git clone git@github.com:neohelden/global-audit-ci-config.git config;
-        else
-          mkdir config
-          echo '{"allowlist":[]}' > config/audit-ci.json;
-        fi
 
-        cd config
-
-        commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
-        sevenDaysInThePast=$(date --date '- 7days' +%s)
-        
-        if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
-          [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
-          exit
-        then
-          echo "Global audit file is older than 7 days. Please review and amend!"
-          exit 1
-        fi
-
-        mv audit-ci.json /tmp/common_audit_ci.json
-
-    - name: Audit dependencies
-      run: |
-        FILE=${{ inputs.audit-ci-config }}
-
-        if [ ! -z "$FILE" ] && \
-          [ -f "$FILE" ]
-        then
-          jq --argjson arr1 "$(cat /tmp/common_audit_ci.json)" \
-            --argjson arr2 "$(cat $FILE)" \
-            -n '{allowlist: [$arr1["allowlist"] + \
-            $arr2["allowlist"]]}' > \
-            /tmp/audit_ci.rendered.json
-          
-          npx audit-ci --high --config=/tmp/audit_ci.rendered.json
-
-          commitMiliseconds=$(git log --format="%at" -- $FILE)
+          cd config
+          commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
-
+          
           if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
             [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
             exit
           then
-            echo "File $FILE is older than 7 days. Please review and amend!"
+            echo "Global audit file 'neohelden/global-audit-ci-config/audit-ci.json' is older than 7 days. Please review and amend!"
+            exit 1
+          fi
+
+        else
+          echo "Creating empty global config"
+          mkdir config
+          echo '{"allowlist":[]}' > config/audit-ci.json;
+        fi
+      
+        mv config/audit-ci.json /tmp/common_audit_ci.json
+
+    - name: Audit dependencies
+      run: |
+        LOCAL_FILE=${{ inputs.audit-ci-config }}
+        GLOBAL_FILE=/tmp/common_audit_ci.json
+        MERGED_FILE=/tmp/audit_ci.rendered.json
+
+        if [ -n "$LOCAL_FILE" ] && \
+          [ -f "$LOCAL_FILE" ]
+        then
+          jq --argjson global "$(cat $GLOBAL_FILE)" \
+            --argjson local "$(cat $LOCAL_FILE)" \
+            -n '{allowlist: [$global["allowlist"] + $local["allowlist"]]}' > \
+            $MERGED_FILE
+
+          echo "Using audit-ci config: $(cat $MERGED_FILE)"
+          
+          npx audit-ci --high --config=$MERGED_FILE
+
+          commitMiliseconds=$(git log --format="%at" -- $FILE)
+          sevenDaysInThePast=$(date --date '- 7days' +%s)
+
+          if [ "$(jq -r .allowlist $LOCAL_FILE)" != "null" ] && \
+            [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
+            exit
+          then
+            echo "File $LOCAL_FILE is older than 7 days. Please review and amend!"
             exit 1
           fi
         else
-          npx audit-ci --high --config /tmp/common_audit_ci.json
+          echo "Using audit-ci config: $(cat $GLOBAL_FILE)"
+          npx audit-ci --high --config $GLOBAL_FILE
         fi
 
       shell: bash
