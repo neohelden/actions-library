@@ -36,8 +36,10 @@ runs:
       run: |
         echo "${{ inputs.repo-ssh-key }}" > /tmp/audit_ci_key
         chmod 600 /tmp/audit_ci_key
-        if [[ -z $(grep '[^[:space:]]' /tmp/audit_ci_key ) ]]; then
-        git clone git@github.com:neohelden/global-audit-ci-config.git config;
+
+        if [[ -z $(grep '[^[:space:]]' /tmp/audit_ci_key ) ]]
+        then
+          git clone git@github.com:neohelden/global-audit-ci-config.git config;
         else
           mkdir config
           echo '{"allowlist":[]}' > config/audit-ci.json;
@@ -47,11 +49,14 @@ runs:
 
         commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
         sevenDaysInThePast=$(date --date '- 7days' +%s)
-        if [ "$(jq -r .allowlist $FILE)" != "null" ] && [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && exit
-          then
-            echo "Global audit file is older than 7 days. Please review and amend!"
-            exit 1
-          fi
+        
+        if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
+          [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
+          exit
+        then
+          echo "Global audit file is older than 7 days. Please review and amend!"
+          exit 1
+        fi
 
         mv audit-ci.json /tmp/common_audit_ci.json
 
@@ -59,15 +64,23 @@ runs:
       run: |
         FILE=${{ inputs.audit-ci-config }}
 
-        if [ ! -z "$FILE" ] && [ -f "$FILE" ]
+        if [ ! -z "$FILE" ] && \
+          [ -f "$FILE" ]
         then
-          jq --argjson arr1 "$(cat /tmp/common_audit_ci.json)" --argjson arr2 "$(cat $FILE)" -n '{allowlist: [$arr1["allowlist"] + $arr2["allowlist"]]}' > /tmp/audit_ci.rendered.json
+          jq --argjson arr1 "$(cat /tmp/common_audit_ci.json)" \
+            --argjson arr2 "$(cat $FILE)" \
+            -n '{allowlist: [$arr1["allowlist"] + \
+            $arr2["allowlist"]]}' > \
+            /tmp/audit_ci.rendered.json
+          
           npx audit-ci --high --config=/tmp/audit_ci.rendered.json
 
           commitMiliseconds=$(git log --format="%at" -- $FILE)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
 
-          if [ "$(jq -r .allowlist $FILE)" != "null" ] && [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && exit
+          if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
+            [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
+            exit
           then
             echo "File $FILE is older than 7 days. Please review and amend!"
             exit 1
@@ -84,10 +97,25 @@ runs:
       shell: bash
       run: |
         npx license-checker \
-            --onlyAllow="Python-2.0;MIT;Apache-2.0;BSD-3-Clause;ISC;MIT OR Apache-2.0;BSD-2-Clause;BSD;Apache*;Apache 2.0;Unlicense;CC0-1.0;Public Domain;WTFPL;CC-BY-4.0;VOL" \
+            --onlyAllow="Python-2.0; \
+              MIT; \
+              Apache-2.0; \
+              BSD-3-Clause; \
+              ISC; \
+              MIT OR Apache-2.0; \
+              BSD-2-Clause; \
+              BSD;Apache*; \
+              Apache 2.0; \
+              Unlicense; \
+              CC0-1.0; \
+              Public Domain; \
+              WTFPL; \
+              CC-BY-4.0; \
+              VOL" \
             --excludePackages="${{ inputs.license-exclude-packages }}" \
             --excludePrivatePackages \
-            --csv --out licenses.csv
+            --csv \
+            --out licenses.csv
 
     - name: Upload license file
       uses: actions/upload-artifact@v2
