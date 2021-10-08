@@ -74,6 +74,11 @@ runs:
       uses: docker/metadata-action@v3.5.0
       with:
         images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
+        tags: |
+          type=schedule,pattern=nightly
+          type=edge,branch=develop
+          type=ref,event=pr
+          type=sha
 
     - uses: docker/setup-buildx-action@v1
 
@@ -91,7 +96,6 @@ runs:
         file: ${{ inputs.docker-file }}
         tags: |
           ${{ steps.docker_meta.outputs.tags }}
-          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
         cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
         cache-to: type=inline
