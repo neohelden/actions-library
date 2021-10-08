@@ -54,9 +54,9 @@ runs:
       run: |
         if [ -n "${{ inputs.image-name }}" ]
         then
-          echo "::set-output name=value::$(echo ${{ inputs.image-name }})
+          echo "::set-output name=value::$(echo ${{ inputs.image-name }})"
         else
-          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')
+          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
         fi
 
     # use specific commit-sha to be sure this is not changed
