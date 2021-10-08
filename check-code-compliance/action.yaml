@@ -45,7 +45,8 @@ runs:
           commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
           
-          if [ "$(jq -r .allowlist $FILE)" != "null" ] && [ "$(jq -r .allowlist $FILE)" != "[]" ] && \
+          if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
+            [ "$(jq -r .allowlist $FILE)" != "[]" ] && \
             [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
             exit
           then
