@@ -170,7 +170,7 @@ runs:
       run: |
         if ! [[ $GITHUB_HEAD_REF == dependabot/* ]]
         then
-          /usr/bin/docker run --name sonar-scanner --workdir /github/workspace --rm \
+          /usr/bin/docker run --user=0 --name sonar-scanner --workdir /github/workspace --rm \
             -e GITHUB_TOKEN -e SONAR_TOKEN -e INPUT_PROJECTBASEDIR -e INPUT_ARGS -e HOME -e GITHUB_JOB -e GITHUB_REF -e GITHUB_SHA  \
             -e GITHUB_REPOSITORY -e GITHUB_REPOSITORY_OWNER -e GITHUB_RUN_ID -e GITHUB_RUN_NUMBER -e GITHUB_RETENTION_DAYS -e GITHUB_RUN_ATTEMPT \
             -e GITHUB_ACTOR -e GITHUB_WORKFLOW -e GITHUB_HEAD_REF -e GITHUB_BASE_REF -e GITHUB_EVENT_NAME -e GITHUB_SERVER_URL \
