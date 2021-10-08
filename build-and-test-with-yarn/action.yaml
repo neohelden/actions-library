@@ -143,19 +143,22 @@ runs:
 
     - name: Prepare SonarCloud
       run: |
-        curl --include \
-          --request POST \
-          --header "Content-Type: application/x-www-form-urlencoded" \
-          -u ${{ inputs.sonar-token }} \
-          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
-          'https://sonarcloud.io/api/projects/create'
+        if ! [[ $GITHUB_HEAD_REF == dependabot/* ]]
+        then
+          curl --include \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            -u ${{ inputs.sonar-token }} \
+            -d 'project=neohelden-${{ inputs.sonar-projectKey }}&organization=${{ inputs.sonar-organization }}&name=${{ inputs.sonar-projectKey }}' \
+            'https://sonarcloud.io/api/projects/create'
 
-        curl --include \
-          --request POST \
-          --header "Content-Type: application/x-www-form-urlencoded" \
-          -u ${{ inputs.sonar-token }} \
-          -d 'project=neohelden-${{ inputs.sonar-projectKey }}&name=${{ inputs.default-branch }}' \
-          'https://sonarcloud.io/api/project_branches/rename'
+          curl --include \
+            --request POST \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            -u ${{ inputs.sonar-token }} \
+            -d 'project=neohelden-${{ inputs.sonar-projectKey }}&name=${{ inputs.default-branch }}' \
+            'https://sonarcloud.io/api/project_branches/rename';
+        fi
       shell: bash
 
     - name: SonarCloud Scan
