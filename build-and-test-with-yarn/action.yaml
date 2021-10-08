@@ -166,6 +166,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
+        SONARCLOUD_URL: "https://sonarcloud.io"
       run: |
         if ! [[ $GITHUB_HEAD_REF == dependabot/* ]]
         then
@@ -176,6 +177,7 @@ runs:
             -e GITHUB_API_URL -e GITHUB_GRAPHQL_URL -e GITHUB_WORKSPACE -e GITHUB_ACTION -e GITHUB_EVENT_PATH -e GITHUB_ACTION_REPOSITORY \
             -e GITHUB_ACTION_REF -e GITHUB_PATH -e GITHUB_ENV -e GITHUB_ACTION_PATH -e RUNNER_OS -e RUNNER_NAME -e RUNNER_TOOL_CACHE \
             -e RUNNER_TEMP -e RUNNER_WORKSPACE -e ACTIONS_RUNTIME_URL -e ACTIONS_RUNTIME_TOKEN -e ACTIONS_CACHE_URL \
+            -e SONARCLOUD_URL -e SONAR_SCANNER_HOME=/opt/sonar-scanner -e NODEJS_HOME=/opt/nodejs \
             -e GITHUB_ACTIONS=true -e CI=true -v "/var/run/docker.sock":"/var/run/docker.sock" \
             -v "/home/runner/work/_temp/_github_home":"/github/home" \
             -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" \
