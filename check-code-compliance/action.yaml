@@ -2,6 +2,10 @@ name: Check Code Compliance
 description: Checks the code and dependencies for compliant licenses
 
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   artifact-name:
     description: Name of the artifact. Default is derived from the repo name.
     required: false
@@ -22,6 +26,8 @@ runs:
 
   steps:
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.checkout-ref }}
 
     - name: Install dependencies
       run: yarn

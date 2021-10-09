@@ -2,6 +2,10 @@ name: Build and Test
 description: Builds and tests code using yarn
 
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   sonar-token:
     description: "Token used for pushing test results to SonarCloud.io"
     required: true
@@ -80,6 +84,7 @@ runs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0 ## fix shallow clone detected by SonarCloud.io
+        ref: ${{ inputs.checkout-ref }}
 
     - name: Resolve yarn dependencies
       run: |
