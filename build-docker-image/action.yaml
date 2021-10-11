@@ -120,7 +120,6 @@ runs:
     - name: Test Docker image
       shell: bash {0}
       run: |
-        docker images
         docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
         until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
