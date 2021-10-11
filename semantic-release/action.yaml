@@ -1,6 +1,10 @@
 name: "semantic-release"
 description: "Creates a Semantic Release"
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   gh-app-id:
     description: Id of a Github App used to trigger follow-up Github Action workflows
     required: true
@@ -28,6 +32,7 @@ runs:
     - uses: actions/checkout@v2.3.4
       with:
         fetch-depth: 0
+        ref: ${{ inputs.checkout-ref }}
 
     - uses: actions/setup-node@v2.4.0
       with:
