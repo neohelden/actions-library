@@ -118,8 +118,6 @@ runs:
 
     - name: Test Docker image
       shell: bash {0}
-      env:
-        COMMIT_TAG: ${{ inputs.image-tag }}
       run: |
         docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
