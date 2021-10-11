@@ -80,6 +80,10 @@ runs:
       uses: docker/metadata-action@v3.5.0
       with:
         images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
+        tags: |
+          type=schedule,pattern=nightly
+          type=edge,branch=develop
+          type=ref,event=pr
 
     - uses: docker/setup-buildx-action@v1
 
@@ -92,14 +96,19 @@ runs:
 
     - name: Build Docker Image
       uses: docker/build-push-action@v2
+      id: docker_build
       with:
         context: ${{ inputs.docker-context }}
         file: ${{ inputs.docker-file }}
         tags: |
           ${{ steps.docker_meta.outputs.tags }}
-          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
-        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+        cache-from: |
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+          ${{ steps.docker_meta.outputs.tags }}
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         cache-to: type=inline
         platforms: ${{ inputs.platforms }}
         load: true
