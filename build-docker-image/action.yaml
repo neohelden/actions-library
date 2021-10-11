@@ -107,8 +107,10 @@ runs:
 
     - name: Test Docker image
       shell: bash {0}
+      env:
+        COMMIT_TAG: ${{ inputs.image-tag }}
       run: |
-        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${COMMIT_TAG:0:2}
         counter=0
         until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
         do
