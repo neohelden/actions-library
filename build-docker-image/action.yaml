@@ -120,7 +120,7 @@ runs:
       env:
         COMMIT_TAG: ${{ inputs.image-tag }}
       run: |
-        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:sha-${COMMIT_TAG:0:7}
+        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}@${{ steps.docker_build.outputs.digest }}
         counter=0
         until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
         do
