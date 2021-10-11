@@ -102,7 +102,6 @@ runs:
         file: ${{ inputs.docker-file }}
         tags: |
           ${{ steps.docker_meta.outputs.tags }}
-          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
         cache-from: |
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main
