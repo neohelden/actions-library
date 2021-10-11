@@ -97,7 +97,11 @@ runs:
         tags: |
           ${{ steps.docker_meta.outputs.tags }}
         labels: ${{ steps.docker_meta.outputs.labels }}
-        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+        cache-from: |
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+          ${{ steps.docker_meta.outputs.tags }}
         cache-to: type=inline
         platforms: ${{ inputs.platforms }}
         load: true
@@ -110,7 +114,7 @@ runs:
       env:
         COMMIT_TAG: ${{ inputs.image-tag }}
       run: |
-        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${COMMIT_TAG:0:2}
+        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:sha-${COMMIT_TAG:0:7}
         counter=0
         until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
         do
