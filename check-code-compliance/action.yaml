@@ -79,9 +79,7 @@ runs:
         if [ -n "$LOCAL_FILE" ] && \
           [ -f "$LOCAL_FILE" ]
         then
-          jq --argjson global "$(cat $GLOBAL_FILE)" \
-            --argjson local "$(cat $LOCAL_FILE)" \
-            -n '{allowlist: $global["allowlist"] + $local["allowlist"]}' > \
+          jq -n '{ allowlist: [ inputs.allowlist ] | add }' $LOCAL_FILE $GLOBAL_FILE > \
             $MERGED_FILE
 
           echo "Using audit-ci config: $(cat $MERGED_FILE)"
