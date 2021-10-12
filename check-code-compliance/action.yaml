@@ -81,7 +81,7 @@ runs:
         then
           jq --argjson global "$(cat $GLOBAL_FILE)" \
             --argjson local "$(cat $LOCAL_FILE)" \
-            -n '{allowlist: [$global["allowlist"] + $local["allowlist"]]}' > \
+            -n '{allowlist: $global["allowlist"] + $local["allowlist"]}' > \
             $MERGED_FILE
 
           echo "Using audit-ci config: $(cat $MERGED_FILE)"
