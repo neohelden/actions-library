@@ -90,11 +90,14 @@ runs:
       id: extract_branch
       run: |
         BRANCH_NAME=${{ inputs.sonar-branch-name }}
+
         if [ -n "$BRANCH_NAME" ]
         then
           echo "##[set-output name=branch;]$(echo ${BRANCH_NAME#refs/heads/})"
+          echo "##[set-output name=pr;]''"
         else
           echo "##[set-output name=branch;]''"
+          echo "##[set-output name=pr;]${{ github.event.number }}"
         fi
       shell: bash
 
@@ -200,3 +203,4 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
+        SONAR_PULLREQUEST_KEY: ${{ steps.extract_branch.outputs.pr }}
