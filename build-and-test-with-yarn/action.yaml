@@ -93,7 +93,7 @@ runs:
 
         if [ -n "$BRANCH_NAME" ]
         then
-          echo "##[set-output name=branch;]$(echo ${BRANCH_NAME#refs/heads/})"
+          echo "##[set-output name=branch;]-Dsonar.branch.name=$(echo ${BRANCH_NAME#refs/heads/})"
           echo "##[set-output name=pr;]''"
         else
           echo "##[set-output name=branch;]''"
@@ -191,7 +191,7 @@ runs:
         args: >
           -Dsonar.organization=${{ inputs.sonar-organization }}
           -Dsonar.projectKey=neohelden-${{ inputs.sonar-projectKey }}
-          -Dsonar.branch.name=${{ steps.extract_branch.outputs.branch }}
+          ${{ steps.extract_branch.outputs.branch }}
           -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
           -Dsonar.sources=${{ inputs.sonar-sources }}
           -Dsonar.inclusions=${{ inputs.sonar-inclusions }}
