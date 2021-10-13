@@ -191,6 +191,7 @@ runs:
         args: >
           -Dsonar.organization=${{ inputs.sonar-organization }}
           -Dsonar.projectKey=neohelden-${{ inputs.sonar-projectKey }}
+          -Dsonar.branch.name=${{ steps.extract_branch.outputs.branch }}
           -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
           -Dsonar.sources=${{ inputs.sonar-sources }}
           -Dsonar.inclusions=${{ inputs.sonar-inclusions }}
@@ -202,5 +203,5 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
-        SONAR_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
-        SONAR_PULLREQUEST_KEY: ${{ steps.extract_branch.outputs.pr }}
+        #SONAR_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
+        #SONAR_PULLREQUEST_KEY: ${{ steps.extract_branch.outputs.pr }}
