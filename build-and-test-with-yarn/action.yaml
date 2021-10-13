@@ -94,10 +94,8 @@ runs:
         if [ -n "$BRANCH_NAME" ]
         then
           echo "##[set-output name=branch;]-Dsonar.branch.name=$(echo ${BRANCH_NAME#refs/heads/})"
-          echo "##[set-output name=pr;]''"
         else
-          echo "##[set-output name=branch;]''"
-          echo "##[set-output name=pr;]${{ github.event.number }}"
+          echo "##[set-output name=branch;]"
         fi
       shell: bash
 
@@ -203,5 +201,3 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
-        #SONAR_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
-        #SONAR_PULLREQUEST_KEY: ${{ steps.extract_branch.outputs.pr }}
