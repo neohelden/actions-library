@@ -47,6 +47,14 @@ inputs:
     description: Build Args used when building the Docker image
     required: false
     default: ""
+  docker-push-build-secrets:
+    description: Build secrets used when building the docker image
+    required: false
+    default: ""
+  docker-push-build-secret-files:
+    description: Build secret files used when building the docker image
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -116,6 +124,8 @@ runs:
         pull: true
         push: false
         build-args: ${{ inputs.docker-push-build-args }}
+        secret-files: ${{ inputs.docker-push-build-secret-files }}
+        secrets: ${{ inputs.docker-push-build-secrets }}
 
     - name: Test Docker image
       shell: bash {0}
