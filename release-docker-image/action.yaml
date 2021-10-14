@@ -30,6 +30,9 @@ runs:
         password: ${{ inputs.image-registry-token }}
 
     - shell: bash
+      run: docker pull ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
+
+    - shell: bash
       run: |
         docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
         docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
