@@ -19,7 +19,7 @@ inputs:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
-  tag-prefix: 
+  image-tag-prefix: 
     description: "A prefix for the created tag"
     required: false
     default: ""
