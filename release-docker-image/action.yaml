@@ -22,7 +22,6 @@ inputs:
   image-tag-prefix: 
     description: "A prefix for the created image tag"
     required: false
-    default: ""
 
 runs:
   using: "composite"
