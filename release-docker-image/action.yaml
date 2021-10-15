@@ -19,6 +19,9 @@ inputs:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
+  image-tag-prefix: 
+    description: "A prefix for the created image tag"
+    required: false
 
 runs:
   using: "composite"
@@ -34,8 +37,8 @@ runs:
 
     - shell: bash
       run: |
-        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.image-tag-prefix }}${{ github.event.release.tag_name }}
         docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
 
-        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.tag-prefix }}${{ github.event.release.tag_name }}
         docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
