@@ -84,7 +84,7 @@ runs:
           EXTRA_PLUGINS=(${{ inputs.release-extra-plugins }})
           PLUGINS=""
           for PLUGIN in ${EXTRA_PLUGINS[@]}; do
-            PLUGINS=",$PLUGIN";
+            PLUGINS="$PLUGINS,$PLUGIN";
           done
           semantic-release \
             --branches ${{ inputs.release-branch }} \
