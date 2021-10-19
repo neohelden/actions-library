@@ -83,6 +83,12 @@ runs:
         wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq 
         chmod +x /usr/bin/yq
 
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+
+
     - name: set version of app
       shell: bash
       run: |
@@ -95,7 +101,7 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: ["master","main"]
+        branches: "${{ steps.vars.outputs.short_ref }}"
         tagFormat: '\${version}'
         dryRun: true
         ci: true
