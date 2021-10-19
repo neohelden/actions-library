@@ -108,7 +108,6 @@ runs:
                 'verifyReleaseCmd': "$COMMAND",
               },
             ]
-          - '@semantic-release/github'
         EOF
 
         npx semantic-release --debug
