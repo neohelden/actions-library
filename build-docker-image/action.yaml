@@ -95,9 +95,9 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: "${{ inputs.release-branch }}"
-        tagFormat: '${version}'
-        dryRun: false
+        branches: ["master","main","develop"]
+        tagFormat: '\${version}'
+        dryRun: true
         ci: true
         debug: true
         plugins:
@@ -105,7 +105,7 @@ runs:
           - [
               '@semantic-release/exec',
               {
-                'prepareCmd': "$COMMAND",
+                'generateNotesCmd': "$COMMAND",
               },
             ]
         EOF
