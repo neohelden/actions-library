@@ -95,7 +95,7 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: ["master","main","develop"]
+        branches: ["master","main"]
         tagFormat: '\${version}'
         dryRun: true
         ci: true
