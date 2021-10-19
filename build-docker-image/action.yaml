@@ -101,7 +101,7 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: "${{ steps.vars.outputs.short_ref }}"
+        branches: ["${{ steps.extract_branch.outputs.short_ref }}"]
         tagFormat: '\${version}'
         dryRun: true
         ci: true
