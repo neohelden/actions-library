@@ -73,6 +73,45 @@ runs:
           echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
         fi
 
+    - name: Install semantic-release
+      shell: bash
+      run: |
+        sudo npm install -g \
+          semantic-release@18.0.0 \
+          @semantic-release/exec@6.0.1
+
+        wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq 
+        chmod +x /usr/bin/yq
+
+    - name: set version of app
+      shell: bash
+      run: |
+        if [ -f package.json ]; then
+          COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
+        fi
+        if [ -f pubspec.yaml ]; then
+          COMMAND="yq -i e '.version = \${nextRelease.version}' pubspec.yaml"
+        fi
+
+
+        cat <<EOF > .releaserc.yaml
+        branches: "${{ inputs.release-branch }}"
+        tagFormat: '${version}'
+        dryRun: false
+        ci: true
+        debug: true
+        plugins:
+          - '@semantic-release/commit-analyzer'
+          - [
+              '@semantic-release/exec',
+              {
+                'prepareCmd': "$COMMAND",
+              },
+            ]
+        EOF
+
+        npx semantic-release --debug
+
     # use specific commit-sha to be sure this is not changed
     - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
