@@ -78,22 +78,17 @@ runs:
 
     - shell: bash
       run: |
-        if ! [[ -n "${{ github.event.pull_request.head.sha }}" ]]
-        then
-          IFS=,
-          EXTRA_PLUGINS=(${{ inputs.release-extra-plugins }})
-          PLUGINS=""
-          for PLUGIN in ${EXTRA_PLUGINS[@]}; do
-            PLUGINS="$PLUGINS,$PLUGIN";
-          done
-          semantic-release \
-            --branches ${{ inputs.release-branch }} \
-            --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-            --tag-format \${version} \
-            --debug true
-        else
-          echo "Skipping semantic-release "
-        fi
+        IFS=,
+        EXTRA_PLUGINS=(${{ inputs.release-extra-plugins }})
+        PLUGINS=""
+        for PLUGIN in ${EXTRA_PLUGINS[@]}; do
+          PLUGINS="$PLUGINS,$PLUGIN";
+        done
+        semantic-release \
+          --branches ${{ inputs.release-branch }} \
+          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
+          --tag-format \${version} \
+          --debug true
       env:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
