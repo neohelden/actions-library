@@ -112,8 +112,8 @@ runs:
       run: |
         gem install --no-document git-pr-release
 
-        if [ $GITHUB_EVENT_NAME = "push" ]; then
-        git-pr-release
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}"]; then
+          git-pr-release --no-fetch
         fi
       env:
         GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.release-branch }}
