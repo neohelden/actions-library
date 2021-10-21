@@ -25,6 +25,14 @@ inputs:
     description: tsconfig file used for building the project.
     default: tsconfig.build.json
     required: false
+  dev-branch:
+    description: The staging branch in this project. 
+    default: develop
+    required: false
+  release-labels:
+    description: A comma seperated list of labels to add to a release PR
+    default: release
+    required: false
 
 runs:
   using: "composite"
@@ -93,3 +101,12 @@ runs:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         NPM_TOKEN: ${{ inputs.npm-automation-token }}
+    
+    - uses: bakunyo/git-pr-release-action@v1.3
+      name: Create Release PR
+      env:
+        GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.release-branch }}
+        GIT_PR_RELEASE_BRANCH_STAGING: ${{ inputs.dev-branch }}
+        GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        GIT_PR_RELEASE_LABELS: ${{ inputs.release-labels }}
+        GIT_PR_RELEASE_MENTION: author
