@@ -113,7 +113,7 @@ runs:
         gem install --no-document git-pr-release
 
         if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}"]; then
-          git-pr-release --no-fetch
+          git-pr-release --no-fetch --squashed
         fi
       env:
         GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.release-branch }}
