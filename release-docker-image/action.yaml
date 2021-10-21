@@ -22,6 +22,9 @@ inputs:
   image-tag-prefix: 
     description: "A prefix for the created image tag"
     required: false
+  release-hook:
+    description: A webhook url to post notifications about releases against
+    required: false
 
 runs:
   using: "composite"
@@ -42,3 +45,9 @@ runs:
 
         docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.tag-prefix }}${{ github.event.release.tag_name }}
         docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+    - shell: bash 
+      run: |
+        if [ ! "${{ inputs.release-hook }}" = "" ]; then
+          curl -X POST --data-urlencode "payload={\"channel\": \"#releases\", \"username\": \"webhookbot\", \"text\": \"A new release of ${GITHUB_SERVER_URL}${GITHUB_REPOSITORY} is available: ${{ github.event.release.tag_name }}\", \"icon_emoji\": \":ghost:\"}" ${{ inputs.release-hook }}
+        fi
