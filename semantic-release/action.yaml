@@ -110,9 +110,8 @@ runs:
     - name: Create Release PR
       shell: bash
       run: |
-        gem install --no-document git-pr-release
-
-        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}"]; then
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ]; then
+          gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
         fi
       env:
