@@ -111,32 +111,31 @@ runs:
     - name: Create Release PR
       shell: bash
       run: |
+        cat <<EOF > .releaserc.yaml
+        branches: ["${GITHUB_REF#refs/*/}"]
+        tagFormat: '\${version}'
+        dryRun: true
+        ci: true
+        debug: true
+        plugins:
+          - '@semantic-release/commit-analyzer'
+          - [
+              '@semantic-release/exec',
+              {
+                'verifyReleaseCmd': "echo \${nextRelease.version} > version.txt",
+              },
+            ]
+        EOF
+
+        cat <<EOF > template.erb
+        Release $(cat version.txt)
+        <% pull_requests.each do |pr| -%>
+        <%=  pr.to_checklist_item %>
+        <% end -%>
+        EOF
+
         if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ]; then
-          
-          cat <<EOR > .releaserc.yaml
-          branches: ["${GITHUB_REF#refs/*/}"]
-          tagFormat: '\${version}'
-          dryRun: true
-          ci: true
-          debug: true
-          plugins:
-            - '@semantic-release/commit-analyzer'
-            - [
-                '@semantic-release/exec',
-                {
-                  'verifyReleaseCmd': "echo \${nextRelease.version} > version.txt",
-                },
-              ]
-          EOR
-
           npx semantic-release --debug
-
-          cat <<EOT > template.erb
-          Release $(cat version.txt)
-          <% pull_requests.each do |pr| -%>
-          <%=  pr.to_checklist_item %>
-          <% end -%>
-          EOT
 
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
