@@ -96,7 +96,7 @@ runs:
           COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
         fi
         if [ -f pubspec.yaml ]; then
-          COMMAND="yq -i e '.version = \${nextRelease.version}' pubspec.yaml"
+          COMMAND="yq -i e '.version = \\\"\${nextRelease.version}\\\"' pubspec.yaml"
         fi
 
 
