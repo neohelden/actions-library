@@ -127,6 +127,8 @@ runs:
             ]
         EOF
 
+        npx semantic-release --debug
+
         cat <<EOF > template.erb
         Release $(cat version.txt)
         <% pull_requests.each do |pr| -%>
@@ -135,8 +137,6 @@ runs:
         EOF
 
         if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ]; then
-          npx semantic-release --debug
-
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
         fi
