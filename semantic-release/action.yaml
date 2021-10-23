@@ -145,3 +145,4 @@ runs:
         GIT_PR_RELEASE_LABELS: ${{ inputs.release-labels }}
         GIT_PR_RELEASE_MENTION: author
         GIT_PR_RELEASE_TEMPLATE: template.erb
+        DEBUG: "true"
