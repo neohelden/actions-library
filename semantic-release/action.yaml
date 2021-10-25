@@ -27,7 +27,7 @@ inputs:
     required: false
   dev-branch:
     description: The staging branch in this project. 
-    default: develop
+    default: ${{ github.event.repository.default_branch }}
     required: false
   release-labels:
     description: A comma seperated list of labels to add to a release PR
@@ -136,7 +136,7 @@ runs:
         <% end -%>
         EOF
 
-        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ]; then
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ ! "${{ inputs.dev-branch }}" = "${{ inputs.release-branch }}" ]; then
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
         fi
