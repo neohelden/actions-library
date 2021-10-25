@@ -52,6 +52,10 @@ inputs:
     description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
     default: ""
     required: false
+  sonar-coverage-exclusions:
+    description: Comma delimited path matching patterns defining files to be excluded from coverage reporting.
+    default: ""
+    required: false
   sonar-lcov-reportpaths:
     description: Comma-delimited list of paths to LCOV coverage report files. Paths may be absolute or relative to the project root.
     default: coverage/lcov.info
@@ -197,6 +201,7 @@ runs:
           -Dsonar.tests=${{ inputs.sonar-tests }}
           -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
+          -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
