@@ -25,6 +25,14 @@ inputs:
     description: tsconfig file used for building the project.
     default: tsconfig.build.json
     required: false
+  dev-branch:
+    description: The staging branch in this project. 
+    default: ${{ github.event.repository.default_branch }}
+    required: false
+  release-labels:
+    description: A comma seperated list of labels to add to a release PR
+    default: release
+    required: false
 
 runs:
   using: "composite"
@@ -58,7 +66,8 @@ runs:
           semantic-release@18.0.0 \
           @semantic-release/git@10.0.0 \
           @semantic-release/release-notes-generator@10.0.2 \
-          @semantic-release/github@8.0.0
+          @semantic-release/github@8.0.0 \
+          @semantic-release/exec@6.0.1
 
     - name: Install ${{ inputs.extra-plugins }}
       shell: bash
@@ -93,3 +102,49 @@ runs:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         NPM_TOKEN: ${{ inputs.npm-automation-token }}
+    
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.6 # Not needed with a .ruby-version file
+        bundler-cache: true
+
+    - name: Create Release PR
+      shell: bash
+      run: |
+        cat <<EOF > .releaserc.yaml
+        branches: ["${GITHUB_REF#refs/*/}"]
+        tagFormat: '\${version}'
+        dryRun: true
+        ci: true
+        debug: true
+        plugins:
+          - '@semantic-release/commit-analyzer'
+          - [
+              '@semantic-release/exec',
+              {
+                'verifyReleaseCmd': "echo \${nextRelease.version} > version.txt",
+              },
+            ]
+        EOF
+
+        npx semantic-release --debug
+
+        cat <<EOF > template.erb
+        Release $(cat version.txt)
+        <% pull_requests.each do |pr| -%>
+        <%=  pr.to_checklist_item %>
+        <% end -%>
+        EOF
+
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ ! "${{ inputs.dev-branch }}" = "${{ inputs.release-branch }}" ]; then
+          gem install --no-document git-pr-release
+          git-pr-release --no-fetch --squashed
+        fi
+      env:
+        GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.release-branch }}
+        GIT_PR_RELEASE_BRANCH_STAGING: ${{ inputs.dev-branch }}
+        GIT_PR_RELEASE_TOKEN: ${{ steps.generate_token.outputs.token }}
+        GIT_PR_RELEASE_LABELS: ${{ inputs.release-labels }}
+        GIT_PR_RELEASE_MENTION: author
+        GIT_PR_RELEASE_TEMPLATE: template.erb
+        DEBUG: "true"
