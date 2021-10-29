@@ -49,5 +49,5 @@ runs:
     - shell: bash 
       run: |
         if [ ! "${{ inputs.release-hook }}" = "" ]; then
-          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"text\":\"NewRelease!\",\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"NewReleaseof*${{github.event.repository.name}}*-${{github.event.release.html_url}}|${{github.event.release.tag_name}}>\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Notes*:\\n${{github.event.release.body}}\"}}]}" ${{ inputs.release-hook }}
+          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"New Release of ${{ github.event.repository.name }}\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \\n\\n *Notes*: \\n ${{ github.event.release.body }}\"}}]}" ${{ inputs.release-hook }}
         fi
