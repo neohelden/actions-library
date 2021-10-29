@@ -50,9 +50,9 @@ runs:
       id: slackify
       with:
         text: ${{ github.event.release.body }}
-        
+
     - shell: bash 
       run: |
         if [ ! "${{ inputs.release-hook }}" = "" ]; then
-          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"New Release of ${{ github.event.repository.name }}\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \\n\\n *Notes*: \\n ${{ github.outputs.slackify.text }}\"}}]}" ${{ inputs.release-hook }}
+          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"New Release of ${{ github.event.repository.name }}\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \\n\\n *Notes*: \\n ${{ steps.slackify.outputs.text }}\"}}]}" ${{ inputs.release-hook }}
         fi
