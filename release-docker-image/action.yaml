@@ -49,5 +49,5 @@ runs:
     - shell: bash 
       run: |
         if [ ! "${{ inputs.release-hook }}" = "" ]; then
-          curl -X POST --data-urlencode "payload={\"channel\": \"#releases\", \"username\": \"Ghost Rider\", \"text\": \"A new release of ${GITHUB_SERVER_URL}${GITHUB_REPOSITORY} is available: ${{ github.event.release.tag_name }}\", \"icon_emoji\": \":ghost:\"}" ${{ inputs.release-hook }}
+          curl -X POST --data-urlencode "payload={\"channel\": \"#releases\", \"username\": \"Ghost Rider\", \"text\": \"A new release of ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} is available: ${{ github.event.release.tag_name }}\", \"icon_emoji\": \":ghost:\"}" ${{ inputs.release-hook }}
         fi
