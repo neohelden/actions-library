@@ -22,6 +22,9 @@ inputs:
   image-tag-prefix: 
     description: "A prefix for the created image tag"
     required: false
+  release-hook:
+    description: A webhook url to post notifications about releases against
+    required: false
 
 runs:
   using: "composite"
@@ -42,3 +45,14 @@ runs:
 
         docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ inputs.tag-prefix }}${{ github.event.release.tag_name }}
         docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+    - uses: LoveToKnow/slackify-markdown-action@v1.0.0
+      id: slackify
+      with:
+        text: ${{ github.event.release.body }}
+
+    - shell: bash 
+      run: |
+        if [ ! "${{ inputs.release-hook }}" = "" ]; then
+          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"New Release of ${{ github.event.repository.name }}\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \\n\\n *Notes*: \\n ${{ steps.slackify.outputs.text }}\"}}]}" ${{ inputs.release-hook }}
+        fi
