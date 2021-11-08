@@ -15,6 +15,9 @@ inputs:
     description: Branch name where releases are built from
     required: false
     default: main
+  release-prefix: 
+    description: "A prefix for the created release version"
+    required: false
   release-extra-plugins:
     description: Comma separated list of extra plugins to load for the sematic-release package
     required: false
@@ -85,7 +88,8 @@ runs:
         app_id: ${{ inputs.gh-app-id }}
         private_key: ${{ inputs.gh-app-priv-key }}
 
-    - shell: bash
+    - name: Create semantic release
+      shell: bash
       run: |
         IFS=,
         EXTRA_PLUGINS=(${{ inputs.release-extra-plugins }})
@@ -96,7 +100,7 @@ runs:
         semantic-release \
           --branches ${{ inputs.release-branch }} \
           --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-          --tag-format \${version} \
+          --tag-format ${{ inputs.release-prefix }}\${version} \
           --debug true
       env:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -108,12 +112,12 @@ runs:
         ruby-version: 2.6 # Not needed with a .ruby-version file
         bundler-cache: true
 
-    - name: Create Release PR
+    - name: Create PR for next release
       shell: bash
       run: |
         cat <<EOF > .releaserc.yaml
         branches: ["${GITHUB_REF#refs/*/}"]
-        tagFormat: '\${version}'
+        tagFormat: '${{ inputs.release-prefix }}\${version}'
         dryRun: true
         ci: true
         debug: true
