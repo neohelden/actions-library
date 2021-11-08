@@ -19,9 +19,6 @@ inputs:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
-  image-tag-prefix: 
-    description: "A prefix for the created image tag"
-    required: false
   release-hook:
     description: A webhook url to post notifications about releases against
     required: false
