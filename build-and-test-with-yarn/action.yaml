@@ -183,9 +183,6 @@ runs:
           -u ${{ inputs.sonar-token }} \
           -d 'project=neohelden-${{ inputs.sonar-projectKey }}&name=${{ inputs.default-branch }}' \
           'https://sonarcloud.io/api/project_branches/rename'
-
-          echo ----------------------------
-          echo ${{ github.head_ref }}
       shell: bash
 
     - name: SonarCloud Scan
