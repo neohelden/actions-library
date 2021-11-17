@@ -186,7 +186,7 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
-      if: startsWith(${{github.head_ref}}, 'dependabot')
+      if: ${{ startsWith(github.head_ref, 'dependabot/') }}
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
