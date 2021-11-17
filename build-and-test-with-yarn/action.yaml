@@ -89,7 +89,6 @@ runs:
   using: "composite"
 
   steps:
-
     - name: Branch name
       id: extract_branch
       run: |
@@ -187,6 +186,7 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
+      if: ${{ github.head_ref }} != 'dependabot/*'
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
