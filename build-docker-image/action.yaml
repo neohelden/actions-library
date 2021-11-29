@@ -13,6 +13,10 @@ inputs:
     description: url to the container registry where to push container images too
     required: false
     default: registry.neohelden.com
+  maximize-build-space:
+    description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software. 
+    required: false
+    default: "false"
   image-registry-username:
     description: Username used to login at the image registry
     required: true
@@ -120,14 +124,18 @@ runs:
         npx semantic-release --debug
 
     # use specific commit-sha to be sure this is not changed
-    - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
+    - name: Maximize build space
+      if: ${{ inputs.maximize-build-space == true }} 
+      uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
         remove-dotnet: "true"
         remove-android: "true"
         remove-haskell: "true"
         build-mount-path: /var/lib/docker
 
-    - shell: bash
+    - name: Restart Docker service
+      if: ${{ inputs.maximize-build-space == true }} 
+      shell: bash
       run: sudo service docker restart
 
     - id: docker_meta
