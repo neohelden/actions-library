@@ -164,7 +164,7 @@ runs:
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
           ${{ steps.docker_meta.outputs.tags }}
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
-        cache-to: type=inline
+        cache-to: type=inline,mode=max
         platforms: ${{ inputs.platforms }}
         load: true
         pull: true
