@@ -1,0 +1,88 @@
+# This workflow tags the already built containers with the release tag
+name: Release
+
+on:
+  workflow_call:
+  
+    inputs:
+      image-registry:
+        type: string
+        description: Container registry where to push container images too
+        required: false
+        default: registry.neohelden.com
+      registry-org:
+        type: string
+        description: Organization within the image registry where to push container images too
+        required: false
+        default: neohelden
+      image-name:
+        type: string
+        description: Name of the Docker image.
+        required: false
+        default: ${{ github.event.repository.name }}
+
+    secrets:
+      HARBOR_USERNAME:
+        required: true
+        description: Username used to login at the image registry
+      HARBOR_TOKEN:
+        required: true
+        description: TOken use to login at the image registry
+      SLACK_RELEASE_WEBHOOK_URL:
+        required: false 
+        description: A webhook url to post notifications about releases against
+     
+
+jobs:
+  release-docker-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: docker/login-action@v1
+      with:
+        registry: ${{ inputs.image-registry }}
+        username: ${{ secrets.HARBOR_USERNAME }}
+        password: ${{ secrets.HARBOR_TOKEN }}
+
+    - shell: bash
+      run: docker pull ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
+
+    - shell: bash
+      run: |
+        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+    - uses: LoveToKnow/slackify-markdown-action@v1.0.0
+      id: slackify
+      with:
+        text: ${{ github.event.release.body }}
+
+    - name: Notify release via Slack
+      shell: bash 
+      run: |
+        if [ ! "${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}" = "" ]; then
+          curl --request POST \
+            --url ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }} \
+            --data-urlencode 'payload= {
+              "username": "GhostRider",
+              "icon_emoji": ":ghost:",
+              "blocks": [{
+                "type":"header",
+                "text": {
+                  "type":"plain_text",
+                  "text":"New Release of ${{ github.event.repository.name }}"
+                }
+              },
+              {
+                "type":"section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \n\n *Notes*: \n\n ${{ steps.slackify.outputs.text }}"
+                }
+              }]
+            }'            
+        fi
