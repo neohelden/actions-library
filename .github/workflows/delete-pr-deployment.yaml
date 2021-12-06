@@ -56,7 +56,7 @@ jobs:
           for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n"); do
             abbreviation=$abbreviation"${element:0:1}"
           done
-
+          abbreviation=$(echo $abbreviation | tr '[:upper:]' '[:lower:]') 
           echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
 
       - name: "Delete PR App"
