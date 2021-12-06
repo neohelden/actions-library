@@ -1,0 +1,135 @@
+
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      image-registry:
+        description: Host name of the image registry where build container images are pushed to
+        required: false
+        default: registry.neohelden.com
+        type: string
+      registry-org:
+        description: Organization/project within the image registry
+        required: false
+        default: neohelden
+        type: string
+      image-name:
+        description: name of the image being built
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      argo-host:
+        description: ArgoCd host
+        required: false
+        default: https://argocd.dev.clusters.neohelden.com 
+        type: string
+      argo-base-app:
+        description: ArgoCD app being used as base for deploying the built container image
+        required: false
+        default: neap
+        type: string
+      dev-gitops-base-branch:
+        description: Branch within a gitops repositoriy used by ArgoCD
+        required: false
+        default: main
+        type: string
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+      argocd-auth-token:
+        description: Token for authenticating on ArgoCD host
+        required: true
+
+jobs:
+  deploy-pr:
+    name: deploy-pr
+    if: contains(github.event.pull_request.labels.*.name, 'deploy') 
+    runs-on: ubuntu-latest
+    env:
+      ARGOCD_STATUS: "ArgoCD PR-Deployment"
+      ## workaround since we only have a token setup in Github, but the script expects username/password
+      ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
+      ARGOCD_USERNAME: ""
+      ARGOCD_PASSWORD: ""
+      
+    container:
+      image: registry.neohelden.com/internal/argocd-action:1.0.2
+      credentials:
+          username:  ${{ secrets.image-registry-username }}
+          password: ${{ secrets.image-registry-token }}
+      
+    steps:
+      - name: Prepare
+        id: prepare
+        run : |
+          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n"); do
+            abbreviation=$abbreviation"${element:0:1}"
+          done
+          echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
+      - name: "Create PR App"
+        run: |
+          /argocd create \
+            --update \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
+            -b ${{ inputs.dev-gitops-base-branch }} \
+            -i ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+          --header 'authorization: Bearer ${{ secrets.github-token }}' \
+          --header 'content-type: application/json' \
+          --header 'accept: application/vnd.github.v3+json' \
+          --data '{
+            "state": "pending",
+            "context": "${{ env.ARGOCD_STATUS }}",
+            "description": "${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} available in Argocd UI -->",
+            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
+            }' \
+          --fail
+      
+      - name: Wait-for-healthy"
+        ## TODO: set to 5 minutes once deployment goes through smoothly
+        timeout-minutes: 1
+        run: |
+          /argocd wait-for-healthy \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
+            -b ${{ inputs.dev-gitops-base-branch }}
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+          --header 'authorization: Bearer ${{ secrets.github-token }}' \
+          --header 'content-type: application/json' \
+          --header 'accept: application/vnd.github.v3+json' \
+          --data '{
+            "state": "success",
+            "context": "${{ env.ARGOCD_STATUS }}",
+            "description": "${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} became healthy.",
+            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
+            }' \
+          --fail
+      - name: set status failure
+        if: ${{ failure() }}
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+          --header 'authorization: Bearer ${{ secrets.github-token }}' \
+          --header 'content-type: application/json' \
+          --header 'accept: application/vnd.github.v3+json' \
+          --data '{
+            "state": "failure",
+            "context": "${{ env.ARGOCD_STATUS }}",
+            "description": "Deployment of ${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} failed!",
+            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
+            }' \
+          --fail
