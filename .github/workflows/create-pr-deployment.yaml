@@ -44,6 +44,9 @@ on:
       argocd-auth-token:
         description: Token for authenticating on ArgoCD host
         required: true
+      github-token:
+        description: Token used for accessing GitHub.com
+        required: true
 
 jobs:
   deploy-pr:
