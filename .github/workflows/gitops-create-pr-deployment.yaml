@@ -17,7 +17,7 @@ on:
         default: main
         type: string
       argocd-overlay-path:
-        description: Path within the repository holding the kustomization.yaml of an OVERLAY_PATH
+        description: Path within the repository holding the kustomization.yaml of an overlay
         required: true
         type: string
       k8s-version:
@@ -46,133 +46,30 @@ env:
   ARGOCD_STATUS: "ArgoCD PR-Deployment"
 
 jobs:
-  kustomization:
+  check-kustomization:
     name: "Check kustomization"
     runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v2
-
-      - name: "Setup"
-        uses: yokawasa/action-setup-kube-tools@v0.7.1
+    steps:     
+      - uses: neohelden/actions-library/check-kustomize@main
         with:
-          kustomize: "4.4.0"
-          kube-score: "1.13.0"
-
-      - name: "Print versions"
-        run: |
-          kustomize version
-          kube-score version
-
-      - name: Setup SSH Keys and known_hosts
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
-          ssh-add - <<< "${{ secrets.private-key-robot-account }}"
-
-      - name: "kustomize build"
-        run: |
-          kustomize build ${{ inputs.argocd-overlay-path }}
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          
-      - name: "vars replaced"
-        run: |
-          kustomize build ${{ inputs.argocd-overlay-path }} | grep "\$(" && exit 1 || exit 0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
-      - name: "properties replaced"
-        run: |
-          kustomize build "${{ inputs.argocd-overlay-path }}" | grep "KUSTOMIZE_ME" && exit 1 || exit 0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
-      - name: "Kube-score"
-        run: |
-          ## TODO: check rules specified in kube-score.yaml only and fail if rules are not met
-          kustomize build ${{ inputs.argocd-overlay-path }} | kube-score score --kubernetes-version "${{ inputs.k8s-version }}" --ignore-test pod-networkpolicy - && exit 0 || exit 0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          argocd-overlay-path: ${{ inputs.argocd-overlay-path }}
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
   
   kustomize-diff:
     needs:
-      - kustomization
+      - check-kustomization
     name: "kustomize diff"
     runs-on: ubuntu-latest
-    env:
-      HEAD_REF: ${{ github.head_ref }}
-      BASE_REF: ${{ github.base_ref }}
-    steps:
-      - uses: actions/checkout@v2
+
+    steps:     
+      - uses: neohelden/actions-library/kustomize-diff@main
         with:
-          fetch-depth: 0
-
-      - name: Setup SSH Keys and known_hosts
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
-          ssh-add - <<< "${{ secrets.private-key-robot-account }}"
-
-      - id: kustomize-diff
-        run: |
-          
-          TMP_DIR="$(mktemp -d)"
-          
-          kustomizations=$(find . -maxdepth 4 -name kustomization.yaml -exec dirname {} \; | sort | uniq)
-
-          function build {
-            local ref="$1"
-            printf "\n\nChecking out ref: %s\n" "$ref"
-            git checkout "$ref" --quiet
-            for envpath in $kustomizations; do
-              local build_dir
-              if ! [ -d "$envpath" ]; then continue; fi
-              build_dir="$TMP_DIR/$ref/${envpath#*kustomize/}"
-              printf "\n\nCreating build directory: %s\n" "$build_dir"
-              mkdir -p "$build_dir"
-              echo "Running kustomize"
-              kustomize build "$envpath" -o "$build_dir"
-            done
-          }
-
-          build "${{ env.HEAD_REF }}"
-          build "${{ env.BASE_REF }}"
-
-          set +e
-          diff=$(git diff --no-index "$TMP_DIR/${{ env.BASE_REF }}" "$TMP_DIR/${{ env.HEAD_REF }}")
-          set -e
-
-          output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
-          escaped_output=${output//$'\n'/'%0A'}
-          echo "::set-output name=diff::$escaped_output"
-          printf "\n\nOutput: %s\n" "$escaped_output"          
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
-      - uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ github.event_name }} == "pull_request"
-        with:
-          message: |
-            **Kustomize Diff**
-            <details>
-              <summary>
-              Extended diff
-              </summary>
-              
-              ${{ steps.kustomize-diff.outputs.diff }}
-            </details>
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
 
   deploy:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
     needs:
-      - kustomization
+      - check-kustomization
 
     name: Deploy PR
     runs-on: ubuntu-latest
