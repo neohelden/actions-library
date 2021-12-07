@@ -224,7 +224,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
+    services:
+      npq:
+        image: registry.neohelden.com/neohelden/nats:2.6.3-2.0.0
+        credentials:
+          username:  ${{ secrets.image-registry-username }}
+          password: ${{ secrets.image-registry-token }}
+        ports:
+          - 8222:8222
+          - 4222:4222
+    env:
+      # Dont judge me https://github.com/nats-io/nats-docker/blob/4fe4d656443e2a43caab61ecd665436e12e3358a/2.2.6/alpine3.13/nats-server.conf
+      NPQ_PASS: Neolut1on
+      NPQ_USER: neo
+    container:
+      image: node:16
+
     steps:
+      - name: Install devDeps
+        run: |
+          apt-get update
+          apt-get install -y bash jq
+
       - uses: neohelden/actions-library/build-and-test-with-yarn@main
         with:
           sonar-token: ${{ secrets.sonar-token }}
@@ -318,7 +339,7 @@ jobs:
       - name: Prepare
         id: prepare
         run : |
-          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n"); do
+          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
             abbreviation=$abbreviation"${element:0:1}"
           done
 

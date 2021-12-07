@@ -1,0 +1,88 @@
+name: Kustomize Diff
+description: Compares kustomization.yaml with base
+
+inputs:
+  head-ref:
+    description: head ref
+    default: ${{ github.head_ref }}
+    required: false
+  base-ref:
+    description: base ref
+    default: ${{ github.base_ref }}
+    required: false
+  private-key-robot-account: 
+    description: Private Key of a robot account for creating a token to access private repositories referenced within kustomization files
+    required: true
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
+
+  
+runs:
+  using: "composite"
+  
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.checkout-ref }}
+        fetch-depth: 0
+
+    - name: Setup SSH Keys and known_hosts
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+        ssh-add - <<< "${{ inputs.private-key-robot-account }}"
+      shell: bash
+
+    - id: kustomize-diff
+      run: |        
+        TMP_DIR="$(mktemp -d)"
+        
+        kustomizations=$(find . -maxdepth 4 -name kustomization.yaml -exec dirname {} \; | sort | uniq)
+
+        function build {
+          local ref="$1"
+          printf "\n\nChecking out ref: %s\n" "$ref"
+          git checkout "$ref" --quiet
+          for envpath in $kustomizations; do
+            local build_dir
+            if ! [ -d "$envpath" ]; then continue; fi
+            build_dir="$TMP_DIR/$ref/${envpath#*kustomize/}"
+            printf "\n\nCreating build directory: %s\n" "$build_dir"
+            mkdir -p "$build_dir"
+            echo "Running kustomize"
+            kustomize build "$envpath" -o "$build_dir"
+          done
+        }
+
+        build "${{ inputs.head-ref }}"
+        build "${{ inputs.base-ref }}"
+
+        set +e
+        diff=$(git diff --no-index "$TMP_DIR/${{ inputs.base-ref }}" "$TMP_DIR/${{ inputs.head-ref }}")
+        set -e
+
+        output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
+        escaped_output=${output//$'\n'/'%0A'}
+        echo "::set-output name=diff::$escaped_output"
+        printf "\n\nOutput: %s\n" "$escaped_output"          
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
+
+    - uses: marocchino/sticky-pull-request-comment@v2
+      if: ${{ github.event_name }} == "pull_request"
+      with:
+        message: |
+          **Kustomize Diff**
+          <details>
+            <summary>
+            Extended diff
+            </summary>
+            
+            ${{ steps.kustomize-diff.outputs.diff }}
+          </details>
