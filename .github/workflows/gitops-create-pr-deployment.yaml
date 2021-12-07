@@ -46,18 +46,18 @@ env:
   ARGOCD_STATUS: "ArgoCD PR-Deployment"
 
 jobs:
-  check-kustomization:
+  kustomization-check:
     name: "Check kustomization"
     runs-on: ubuntu-latest
     steps:     
-      - uses: neohelden/actions-library/check-kustomize@main
+      - uses: neohelden/actions-library/kustomize-check@main
         with:
           argocd-overlay-path: ${{ inputs.argocd-overlay-path }}
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
   
   kustomize-diff:
     needs:
-      - check-kustomization
+      - kustomization-check
     name: "kustomize diff"
     runs-on: ubuntu-latest
 
@@ -69,7 +69,7 @@ jobs:
   deploy:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
     needs:
-      - check-kustomization
+      - kustomization-check
 
     name: Deploy PR
     runs-on: ubuntu-latest
