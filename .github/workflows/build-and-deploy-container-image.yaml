@@ -168,6 +168,11 @@ on:
         description: Default development branch of this repository
         default: ${{ github.event.repository.default_branch }}
         required: false
+      release-branch:
+        type: string
+        description: Branch used for releases
+        default: main
+        required: false
       
       argo-host:
         description: ArgoCd host
@@ -422,3 +427,4 @@ jobs:
         with:
           gh-app-id: ${{ secrets.gh-app-id }}
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
+          release-branch: ${{ inputs.release-branch }}
