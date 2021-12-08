@@ -178,7 +178,8 @@ runs:
         load: true
         pull: true
         push: false
-        build-args: ${{ inputs.docker-push-build-args }}
+        build-args: |
+          ${{ inputs.docker-push-build-args }}
         secret-files: ${{ inputs.docker-push-build-secret-files }}
         secrets: ${{ inputs.docker-push-build-secrets }}
 
