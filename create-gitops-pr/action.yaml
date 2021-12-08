@@ -1,0 +1,100 @@
+name: Gitops create PR
+description: Creates/updates a pull-request in a given gitops repository. Should be run from develop and/or main branch on release
+
+inputs:
+  image-registry:
+    description: url to the container registry where to push container images too
+    required: false
+    default: registry.neohelden.com
+  registry-org:
+    description: Organization within the image registry where to push container images too
+    required: false
+    default: neohelden
+  image-name:
+    description: Name of the container image. Default is derived from the repo name.
+    required: false
+    default: ${{ github.event.repository.name }}
+  image-tag:
+    description: Tag of the container image
+    required: false
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+
+  gitops-repository:
+    description: gitops repository name with owner
+    required: false
+  gitops-overlay-dir:
+    description: Path within gitops-repository holding kustomization.yaml of the overlay holding recent develop versions
+    default: kustomizations/overlays/shared-dev
+    required: false
+  gitops-pr-branch:
+    description: Branch name being created in gitops repo where changes are pushed too
+    default: latest-develop
+    required: false
+  gitops-pr-title-prefix:
+    description: Prefix for the PR title
+    default: "[Develop]"
+    required: false
+
+  gh-app-id:
+    description: Id of a Github App used to trigger follow-up Github Action workflows
+    required: true
+  gh-app-priv-key:
+    description: Private key of a Github App used to trigger follow-up Github Action workflows
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Extract branch name
+      shell: bash
+      run: |
+        echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+        echo ::set-output name=image_name::${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}
+      id: extract_branch
+
+    - id: generate_token
+      uses: tibdex/github-app-token@v1.4.0
+      with:
+        app_id: ${{ inputs.gh-app-id }}
+        private_key: ${{ inputs.gh-app-priv-key }}
+
+    - name: Checkout gitops
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ inputs.gitops-repository }}
+        ref: main
+        token: ${{ steps.generate_token.outputs.token }}
+
+    - name: "Setup"
+      uses: yokawasa/action-setup-kube-tools@v0.7.1
+      with:
+        kustomize: "4.4.0"
+        kube-score: "1.13.0"
+
+    - name: Adjust version
+      id: adjust_version
+      run: |
+        cd "${{ inputs.gitops-overlay-dir }}"
+        kustomize edit set image ${{ steps.extract_branch.outputs.image_name }}=:${{ inputs.image-tag }}
+
+        echo "::set-output name=current_date::$(date +%Y-%m-%d_%H-%M)"
+      shell: bash
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: "${{ steps.generate_token.outputs.token }}"
+        title: |
+          ${{ inputs. gitops-pr-title-prefix }} Image updates since ${{ steps.adjust_version.outputs.current_date }}
+        body: >
+          This pull-request was created automatically. New container images will be pushed to this pull-request until it is being merged.<br>
+
+          _Approve whenever you feel this pull-request is complete._
+        base: main
+        branch: ${{ inputs.gitops-pr-branch }}
+        commit-message: "fix: set image ${{ steps.extract_branch.outputs.image_name }} to tag ${{ inputs.image-tag }}"
+        labels: |
+          deploy
+          automated pr
+        draft: true
