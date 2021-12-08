@@ -48,13 +48,20 @@ runs:
           local ref="$1"
           printf "\n\nChecking out ref: %s\n" "$ref"
           git checkout "$ref" --quiet
+
           for envpath in $kustomizations; do
             local build_dir
-            if ! [ -d "$envpath" ]; then continue; fi
+
+            if ! [ -s "$envpath/kustomization.yaml" ]; then 
+              echo "$envpath/kustomization.yaml does not exist or is empty - ignoring"
+              continue
+            fi
+            
             build_dir="$TMP_DIR/$ref/${envpath#*kustomize/}"
             printf "\n\nCreating build directory: %s\n" "$build_dir"
             mkdir -p "$build_dir"
-            echo "Running kustomize"
+
+            echo "Running 'kustomize build $envpath'..."
             kustomize build "$envpath" -o "$build_dir"
           done
         }
