@@ -2,12 +2,11 @@ name: Delete PR Deployment
 
 on:
   workflow_call:
-
     inputs:
       argo-host:
         description: ArgoCd host
         required: false
-        default: https://argocd.dev.clusters.neohelden.com 
+        default: https://argocd.dev.clusters.neohelden.com
         type: string
       argo-base-app:
         description: ArgoCD app being used as base for deploying the built container image
@@ -29,8 +28,8 @@ on:
         required: true
       argocd-auth-token:
         description: Token for authenticating on ArgoCD host
-        required: true      
-      
+        required: true
+
 jobs:
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   delete:
@@ -42,17 +41,17 @@ jobs:
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
       ARGOCD_USERNAME: ""
       ARGOCD_PASSWORD: ""
-    
+
     container:
       image: registry.neohelden.com/internal/argocd-action:1.0.2
       credentials:
-          username: ${{ secrets.image-registry-username }}
-          password: ${{ secrets.image-registry-token }}
-      
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+
     steps:
       - name: Prepare
         id: prepare
-        run : |
+        run: |
           for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n"); do
             abbreviation=$abbreviation"${element:0:1}"
           done

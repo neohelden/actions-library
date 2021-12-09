@@ -89,7 +89,6 @@ runs:
   using: "composite"
 
   steps:
-
     - name: Branch name
       id: extract_branch
       run: |

@@ -77,7 +77,7 @@ on:
         type: string
         description: Build Args used when building the Docker image
         required: false
-        default: ""      
+        default: ""
       docker-push-build-secret-files:
         type: string
         description: Secret files passed to docker-build-push-action in yaml multiline format
@@ -86,12 +86,12 @@ on:
       docker-push-build-secrets:
         type: string
         description: Secrets passed to docker-build-push action in yaml multiline format
-        required: false   
+        required: false
       container-verify-cmd:
         type: string
         description: "Log entry which shows up if the container starts up successfully after build"
         required: true
-      
+
       checkout-ref:
         type: string
         description: Ref to checkout from Git
@@ -173,11 +173,11 @@ on:
         description: Branch used for releases
         default: main
         required: false
-      
+
       argo-host:
         description: ArgoCd host
         required: false
-        default: https://argocd.dev.clusters.neohelden.com 
+        default: https://argocd.dev.clusters.neohelden.com
         type: string
       argo-base-app:
         description: ArgoCD app being used as base for deploying the built container image
@@ -192,10 +192,10 @@ on:
 
       maximize-build-space:
         type: boolean
-        description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software. 
+        description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software.
         required: false
         default: false
-      
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -226,8 +226,7 @@ on:
         required: false
 
 jobs:
-  
-  update-asana: 
+  update-asana:
     name: Update asana tasks
     runs-on: ubuntu-latest
     if: secrets.asana-github-api-token
@@ -246,7 +245,7 @@ jobs:
       npq:
         image: registry.neohelden.com/neohelden/nats:2.6.3-2.0.0
         credentials:
-          username:  ${{ secrets.image-registry-username }}
+          username: ${{ secrets.image-registry-username }}
           password: ${{ secrets.image-registry-token }}
         ports:
           - 8222:8222
@@ -287,7 +286,7 @@ jobs:
           prettier-source-paths: ${{ inputs.prettier-source-paths }}
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
-          
+
   check-code-compliance:
     name: check-code-compliance
     runs-on: ubuntu-latest
@@ -295,13 +294,13 @@ jobs:
 
     steps:
       - uses: neohelden/actions-library/check-code-compliance@main
-        with: 
+        with:
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
           artifact-name: ${{ inputs.artifact-name }}
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
-          
+
   build-docker-image:
     name: build-docker-image
     runs-on: ubuntu-latest
@@ -332,12 +331,12 @@ jobs:
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   deploy-pr:
     name: deploy-pr
-    
+
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
-    
+
     needs:
       - build-docker-image
-    
+
     runs-on: ubuntu-latest
 
     env:
@@ -346,17 +345,17 @@ jobs:
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
       ARGOCD_USERNAME: ""
       ARGOCD_PASSWORD: ""
-      
+
     container:
       image: registry.neohelden.com/internal/argocd-action:1.0.2
       credentials:
-          username:  ${{ secrets.image-registry-username }}
-          password: ${{ secrets.image-registry-token }}
-      
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+
     steps:
       - name: Prepare
         id: prepare
-        run : |
+        run: |
           for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
             abbreviation=$abbreviation"${element:0:1}"
           done
@@ -387,7 +386,7 @@ jobs:
             "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
             }' \
           --fail
-      
+
       - name: Wait-for-healthy"
         ## TODO: set to 5 minutes once deployment goes through smoothly
         timeout-minutes: 1

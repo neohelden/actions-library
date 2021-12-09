@@ -1,14 +1,13 @@
 name: Check code compliance
 on:
   pull_request:
-    types: [opened,synchronize,reopened]
+    types: [opened, synchronize, reopened]
 
 jobs:
   action-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    
     steps:
       - uses: actions/checkout@v2
 
@@ -16,7 +15,7 @@ jobs:
         id: get_actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
         shell: bash
-      
+
       - name: actionlint version
         run: ${{ steps.get_actionlint.outputs.executable }} -version
         shell: bash
@@ -24,4 +23,23 @@ jobs:
       - name: Check workflow files
         # TODO: include composites (https://github.com/rhysd/actionlint/issues/46)
         run: ${{ steps.get_actionlint.outputs.executable }} -color -verbose
+        shell: bash
+  prettier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download prettier
+        id: get_prettier
+        run: sudo npm i -g prettier
+        shell: bash
+
+      - name: prettier version
+        run: npx prettier --version
+        shell: bash
+
+      - name: Check workflow files
+        run: npx prettier --check '.'
         shell: bash
