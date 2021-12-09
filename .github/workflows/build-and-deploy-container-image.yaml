@@ -484,15 +484,21 @@ jobs:
     steps:
       - name: Comment on PR
         if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
-        uses: kt3k/update-pr-description@v1.0.1
+        uses: actions/github-script@v3
         with:
-          pr_body: |
-            :check: This PR is a deployed PR. :check:
+          script: |
+            var PR_HEAD_USERREPO = process.env.PR_HEAD_USERREPO;
+            var PR_HEAD_REF = process.env.PR_HEAD_REF;
+            github.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `:check: This PR is a deployed PR. :check:
             App Deployment: [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
             ---
-            ${{ github.event.pull_request.body }}
+            ${{ github.event.pull_request.body }}`
+            })
           github_token: ${{ secrets.github-token }}
-          destination_branch: ${{ github.event.pull_request.base.ref }}
 
   semantic-release:
     name: semantic-release
