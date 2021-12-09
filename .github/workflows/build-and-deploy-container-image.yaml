@@ -492,20 +492,20 @@ jobs:
             ---
         with:
           script: |
-            const pr = context.github.pullRequests.get({
+            const pr = github.pullRequests.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               number: context.payload.number
             });
             const prBody = pr.data.body;
             const prBodyWithBinderLink = process.env.pR_ADDITION + '\n' + prBody;
-            context.github.issues.update({
+            github.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               number: context.payload.number,
               body: prBodyWithBinderLink
             });
-          github_token: ${{ secrets.github-token }}
+          github-token: ${{ secrets.github-token }}
 
   semantic-release:
     name: semantic-release
