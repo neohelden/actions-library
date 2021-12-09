@@ -427,7 +427,7 @@ jobs:
               "state": "success",
               "context": "${{ env.DEPLOYMENT_STATUS }}",
               "description": "Deployment of workspace succeeced.",
-              "target_url": "https://server${{ steps.prepare.outputs.argocd-suffix }}${{ env.WORKSPACES_BASE }}"
+              "target_url": "https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ env.WORKSPACES_BASE }}"
               }' \
             --fail
 

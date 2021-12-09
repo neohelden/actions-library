@@ -170,7 +170,7 @@ jobs:
               "state": "success",
               "context": "${{ env.DEPLOYMENT_STATUS }}",
               "description": "Deployment of workspace succeeced.",
-              "target_url": "https://server-pr-${{ github.event.number }}${{ inputs.workspaces-base-domain }}"
+              "target_url": "https://server-pr-${{ github.event.number }}.${{ inputs.workspaces-base-domain }}"
               }' \
             --fail
 
