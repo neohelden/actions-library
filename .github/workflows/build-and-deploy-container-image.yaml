@@ -477,8 +477,8 @@ jobs:
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
 
   status-badge: 
-    needs: 
-      - build-docker-image
+    
+
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
