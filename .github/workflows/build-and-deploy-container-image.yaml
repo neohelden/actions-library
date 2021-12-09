@@ -495,10 +495,11 @@ jobs:
             const pr = github.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.number
+              pull_number: context.issue.number
             });
+            console.log(pr);
             const prBody = pr.data.body;
-            const prBodyWithBinderLink = process.env.pR_ADDITION + '\n' + prBody;
+            const prBodyWithBinderLink = process.env.PR_ADDITION + '\n' + prBody;
             github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
