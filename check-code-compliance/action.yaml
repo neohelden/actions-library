@@ -20,6 +20,9 @@ inputs:
   repo-ssh-key:
     description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
     required: false
+  asana-secret:
+    description: The secret to use for the Asana API
+    required: false
 
 runs:
   using: "composite"
@@ -28,6 +31,17 @@ runs:
     - uses: actions/checkout@v2
       with:
         ref: ${{ inputs.checkout-ref }}
+
+    - name: Create pull request attachments
+      uses: Asana/create-app-attachment-github-action@latest
+      id: postAttachment
+      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request'
+      with:
+        asana-secret: ${{ inputs.asana-secret }}
+    - name: Log output status
+      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request'
+      shell: bash
+      run: echo "Status is ${{ steps.postAttachment.outputs.status }}"
 
     - name: Install dependencies
       run: yarn
