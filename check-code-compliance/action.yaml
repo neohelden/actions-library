@@ -35,11 +35,11 @@ runs:
     - name: Create pull request attachments
       uses: Asana/create-app-attachment-github-action@latest
       id: postAttachment
-      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request'
+      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened' || ${{ github.event.action }} == 'synchronize') && github.event_name == 'pull_request' && ${{ inputs.asana-secret }} != ''
       with:
         asana-secret: ${{ inputs.asana-secret }}
     - name: Log output status
-      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request'
+      if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request' && ${{ inputs.asana-secret }} != ''
       shell: bash
       run: echo "Status is ${{ steps.postAttachment.outputs.status }}"
 
