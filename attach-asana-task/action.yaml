@@ -4,12 +4,12 @@ description: Attaches the current PR to an asana task, if a task can be identifi
 inputs:
   asana-secret:
     description: The secret to use for the Asana API
-    default: ''
+    default: ""
     required: false
 
 runs:
   using: "composite"
-  
+
   steps:
     - name: Create pull request attachments
       if: inputs.asana-secret != ''
