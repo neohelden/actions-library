@@ -87,7 +87,7 @@ jobs:
             
             let i = 0;
             const prBody = pr.data.body;
-            const newBody = prBody.split('\n').filter(line => i++ > 4).join('\n');
+            const newBody = prBody.split('\n').filter(line => i++ > 5).join('\n');
             github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,

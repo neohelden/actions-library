@@ -495,6 +495,7 @@ jobs:
           PR_ADDITION: |
             :tada: This PR is an App Deployment :tada: 
             [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
+            View the app at: https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
             
             ---
             Please do not edit this part above
