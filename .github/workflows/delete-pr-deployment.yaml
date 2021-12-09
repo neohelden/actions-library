@@ -86,3 +86,4 @@ jobs:
           pr_body: |
             ${{ steps.strip-lines.outputs.body }}
           github_token: ${{ secrets.github-token }}
+          destination_branch: ${{ github.event.pull_request.base.ref }}
