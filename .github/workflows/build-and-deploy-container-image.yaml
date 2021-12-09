@@ -350,6 +350,7 @@ jobs:
       ARGOCD_USERNAME: ""
       ARGOCD_PASSWORD: ""
       WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
+      DEPLOYMENT_STATUS: "Workspace deployment"
 
     container:
       image: registry.neohelden.com/internal/argocd-action:1.0.2
