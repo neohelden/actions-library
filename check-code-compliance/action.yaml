@@ -28,10 +28,6 @@ runs:
   using: "composite"
 
   steps:
-    - uses: actions/checkout@v2
-      with:
-        ref: ${{ inputs.checkout-ref }}
-
     - name: Create pull request attachments
       uses: Asana/create-app-attachment-github-action@latest
       id: postAttachment
@@ -42,6 +38,10 @@ runs:
       if: (${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'reopened') && github.event_name == 'pull_request' && ${{ inputs.asana-secret }} != ''
       shell: bash
       run: echo "Status is ${{ steps.postAttachment.outputs.status }}"
+
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.checkout-ref }}
 
     - name: Install dependencies
       run: yarn
