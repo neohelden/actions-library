@@ -75,7 +75,7 @@ jobs:
       - name: Strip lines
         id: strip-lines
         run: |
-          body=$(echo ${{ github.event.pull_request.body }} | tail -n+4)
+          body=$(echo "${{ github.event.pull_request.body }}" | tail -n+4 )
           echo ::set-output name=body::"$body"  
       - name: Comment on PR
         uses: kt3k/update-pr-description@v1.0.1
