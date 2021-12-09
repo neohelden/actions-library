@@ -492,14 +492,14 @@ jobs:
             ---
         with:
           script: |
-            const pr = github.pullRequests.get({
+            const pr = github.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               number: context.payload.number
             });
             const prBody = pr.data.body;
             const prBodyWithBinderLink = process.env.pR_ADDITION + '\n' + prBody;
-            github.issues.update({
+            github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               number: context.payload.number,
