@@ -4,17 +4,20 @@ description: Attaches the current PR to an asana task, if a task can be identifi
 inputs:
   asana-secret:
     description: The secret to use for the Asana API
-    required: true
+    default: ''
+    required: false
 
 runs:
   using: "composite"
-
+  
   steps:
     - name: Create pull request attachments
+      if: inputs.asana-secret != ''
       uses: Asana/create-app-attachment-github-action@latest
       id: postAttachment
       with:
         asana-secret: ${{ inputs.asana-secret }}
     - name: Log output status
+      if: inputs.asana-secret != ''
       shell: bash
       run: echo "Status is ${{ steps.postAttachment.outputs.status }}"

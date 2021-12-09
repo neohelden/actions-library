@@ -229,7 +229,6 @@ jobs:
   update-asana:
     name: Update asana tasks
     runs-on: ubuntu-latest
-    if: ${{ inputs.asana-github-api-token }} != ''
     steps:
       - name: Update asana tasks
         uses: neohelden/actions-library/attach-asana-task@main
