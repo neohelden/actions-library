@@ -476,6 +476,24 @@ jobs:
           gh-app-id: ${{ secrets.gh-app-id }}
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
 
+  status-badge: 
+    needs: 
+      - build-docker-image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comment on PR
+        if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
+        uses: kt3k/update-pr-description@v1.0.1
+        with:
+          pr_body: |
+            :check: This PR is a deployed PR. :check:
+            App Deployment: [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
+            ---
+            ${{ github.event.pull_request.body }}
+          github_token: ${{ secrets.github-token }}
+
+
   semantic-release:
     name: semantic-release
     runs-on: ubuntu-latest
