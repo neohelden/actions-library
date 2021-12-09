@@ -482,11 +482,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Comment on PR
-        uses: actions/github-script@v3
+        uses: actions/github-script@v5
         env: 
           PR_ADDITION: |
-            :heavy_check_mark: This PR is a deployed PR. :heavy_check_mark: 
-            App Deployment: [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
+            :tada: This PR is an App Deployment :tada: 
+            [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
             Please do not edit this part above
 
             ---
@@ -497,14 +497,14 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            console.log(pr);
+            
             const prBody = pr.data.body;
-            const prBodyWithBinderLink = process.env.PR_ADDITION + '\n' + prBody;
+            const newBody = process.env.PR_ADDITION + '\n' + prBody;
             github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.number,
-              body: prBodyWithBinderLink
+              body: newBody
             });
           github-token: ${{ secrets.github-token }}
 

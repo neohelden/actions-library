@@ -75,15 +75,23 @@ jobs:
     if: "contains(github.event.pull_request.body, 'App Deployment') && (!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed')"
     timeout-minutes: 5
     steps:
-      - name: Strip lines
-        id: strip-lines
-        run: |
-          body=$(echo "${{ github.event.pull_request.body }}" | tail -n+5 )
-          echo ::set-output name=body::"$body"  
-      - name: Comment on PR
-        uses: kt3k/update-pr-description@v1.0.1
+      - name: Remove status
+        uses: actions/github-script@v5
         with:
-          pr_body: |
-            ${{ steps.strip-lines.outputs.body }}
-          github_token: ${{ secrets.github-token }}
-          destination_branch: ${{ github.event.pull_request.base.ref }}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            let i = 0;
+            const prBody = pr.data.body;
+            const newBody = prBody.split('\n').filter(line => i++ < 5).join('\n');
+            github.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.number,
+              body: newBody
+            });
+          github-token: ${{ secrets.github-token }}
