@@ -482,18 +482,30 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Comment on PR
-        
-        uses: kt3k/update-pr-description@v1.0.1
-        with:
-          pr_body: |
+        uses: actions/github-script@v3
+        env: 
+          PR_ADDITION: |
             :heavy_check_mark: This PR is a deployed PR. :heavy_check_mark: 
             App Deployment: [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
             Please do not edit this part above
 
             ---
-            ${{ github.event.pull_request.body }}
+        with:
+          script: |
+            const pr = context.github.pullRequests.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              number: context.payload.number
+            });
+            const prBody = pr.data.body;
+            const prBodyWithBinderLink = process.env.pR_ADDITION + '\n' + prBody;
+            context.github.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              number: context.payload.number,
+              body: prBodyWithBinderLink
+            });
           github_token: ${{ secrets.github-token }}
-          destination_branch: ${{ github.event.pull_request.base.ref }}
 
   semantic-release:
     name: semantic-release
