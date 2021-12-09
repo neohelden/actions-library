@@ -291,7 +291,7 @@ jobs:
           artifact-name: ${{ inputs.artifact-name }}
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
-          asana-secret: ${{ secrets.asana-secret }}
+          asana-secret: ${{ secrets.asana-github-api-token }}
           
   build-docker-image:
     name: build-docker-image
