@@ -477,13 +477,12 @@ jobs:
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
 
   status-badge: 
-    
-
+    if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Comment on PR
-        if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
+        
         uses: kt3k/update-pr-description@v1.0.1
         with:
           pr_body: |
