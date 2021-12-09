@@ -476,7 +476,7 @@ jobs:
           gh-app-id: ${{ secrets.gh-app-id }}
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
 
-  status-badge: 
+  status-badge:
     if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
     runs-on: ubuntu-latest
     needs:
@@ -493,7 +493,7 @@ jobs:
           echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
       - name: Comment on PR
         uses: actions/github-script@v5
-        env: 
+        env:
           PR_ADDITION: |
             :tada: This PR is an App Deployment :tada: 
             [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
@@ -508,7 +508,7 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            
+
             const prBody = pr.data.body;
             const newBody = process.env.PR_ADDITION + '\n' + prBody;
             github.rest.pulls.update({
