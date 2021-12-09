@@ -233,7 +233,7 @@ jobs:
     if: ${{ secrets.asana-github-api-token }} != ''
     steps:
       - name: Update asana tasks
-        uses: neohelden/actions-library/attach-asana-task@asana-task
+        uses: neohelden/actions-library/attach-asana-task@main
         with:
           asana-secret: ${{ secrets.asana-github-api-token }}
 
