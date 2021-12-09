@@ -481,15 +481,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
+            abbreviation=$abbreviation"${element:0:1}"
+          done
+
+          echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
       - name: Comment on PR
         uses: actions/github-script@v5
         env: 
           PR_ADDITION: |
             :tada: This PR is an App Deployment :tada: 
             [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
-            Please do not edit this part above
-
+            
             ---
+            Please do not edit this part above
         with:
           script: |
             const pr = await github.rest.pulls.get({
