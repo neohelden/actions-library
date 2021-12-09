@@ -201,6 +201,16 @@ on:
         required: false
         default: false
 
+      gitops-repository:
+        description: gitops repository name with owner
+        type: string
+        required: false
+      gitops-overlay-dir:
+        description: Path within gitops-repository holding kustomization.yaml of an overlay
+        type: string
+        default: kustomizations/overlays/shared-dev
+        required: false
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -447,10 +457,29 @@ jobs:
             }' \
           --fail
 
+  update-gitops:
+    if: github.event_name == 'push' && github.event.ref == 'refs/heads/develop' && inputs.gitops-repository != ''
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - build-docker-image
+    steps:
+      - uses: neohelden/actions-library/create-gitops-pr@main
+        with:
+          registry-org: ${{ inputs.registry-org }}
+          image-name: ${{ inputs.image-name }}
+          image-registry: ${{ inputs.image-registry }}
+          image-tag: ${{ inputs.image-tag }}
+          gitops-repository: ${{ inputs.gitops-repository }}
+          gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
+          gh-app-id: ${{ secrets.gh-app-id }}
+          gh-app-priv-key: ${{ secrets.gh-app-private-key }}
+
   semantic-release:
     name: semantic-release
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 10
     needs:
       - build-docker-image
     steps:
