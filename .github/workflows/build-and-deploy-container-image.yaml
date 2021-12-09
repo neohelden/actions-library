@@ -235,7 +235,7 @@ jobs:
       - name: Update asana tasks
         uses: neohelden/actions-library/attach-asana-task@asana-task
         with:
-          api_token: ${{ secrets.asana-github-api-token }}
+          asana-secret: ${{ secrets.asana-github-api-token }}
 
   build-and-test:
     name: build-and-test
