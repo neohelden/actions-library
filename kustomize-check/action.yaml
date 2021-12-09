@@ -2,13 +2,13 @@ name: Kustomize Check
 description: Checks kustomization.yaml for compliance
 
 inputs:
-  private-key-robot-account: 
+  private-key-robot-account:
     description: Private Key of a robot account for creating a token to access private repositories referenced within kustomization files
     required: true
   argocd-overlay-path:
     description: Path within the repository holding the kustomization.yaml of an overlay
     required: true
-  ignore-kustomize-me: 
+  ignore-kustomize-me:
     description: Set to 'true' in order to only log 'KUSTOMIZE_ME' values instead of failing the action
     default: "false"
     required: false
@@ -21,66 +21,65 @@ runs:
   using: "composite"
 
   steps:
-  - name: "Checkout"
-    uses: actions/checkout@v2
-    with:
-      ref: ${{ inputs.checkout-ref }}
-      fetch-depth: 0
+    - name: "Checkout"
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.checkout-ref }}
+        fetch-depth: 0
 
-  - name: "Setup"
-    uses: yokawasa/action-setup-kube-tools@v0.7.1
-    with:
-      kustomize: "4.4.0"
-      kube-score: "1.13.0"
+    - name: "Setup"
+      uses: yokawasa/action-setup-kube-tools@v0.7.1
+      with:
+        kustomize: "4.4.0"
+        kube-score: "1.13.0"
 
-  - name: "Print versions"
-    run: |
-      kustomize version
-      kube-score version
-    shell: bash
+    - name: "Print versions"
+      run: |
+        kustomize version
+        kube-score version
+      shell: bash
 
-  - name: Setup SSH Keys and known_hosts
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    run: |
-      mkdir -p ~/.ssh
-      ssh-keyscan github.com >> ~/.ssh/known_hosts
-      ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
-      ssh-add - <<< "${{ inputs.private-key-robot-account }}"
-    shell: bash
+    - name: Setup SSH Keys and known_hosts
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+        ssh-add - <<< "${{ inputs.private-key-robot-account }}"
+      shell: bash
 
-  - name: "kustomize build"
-    run: |
-      kustomize build ${{ inputs.argocd-overlay-path }}
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    shell: bash
-      
-  - name: "vars replaced"
-    run: |
-      kustomize build ${{ inputs.argocd-overlay-path }} | grep "\$(" && exit 1 || exit 0
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    shell: bash
+    - name: "kustomize build"
+      run: |
+        kustomize build ${{ inputs.argocd-overlay-path }}
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
 
-  - name: "properties replaced"
-    run: |
-      if [ "${{inputs.ignore-kustomize-me }}" == "true" ]; then
-        exitCode=0
-      else
-        exitCode=1
-      fi
+    - name: "vars replaced"
+      run: |
+        kustomize build ${{ inputs.argocd-overlay-path }} | grep "\$(" && exit 1 || exit 0
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
 
-      kustomize build "${{ inputs.argocd-overlay-path }}" | grep "KUSTOMIZE_ME" && exit $exitCode || exit 0
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    shell: bash
+    - name: "properties replaced"
+      run: |
+        if [ "${{inputs.ignore-kustomize-me }}" == "true" ]; then
+          exitCode=0
+        else
+          exitCode=1
+        fi
 
-  - name: "Kube-score"
-    run: |
-      ## TODO: check rules specified in kube-score.yaml only and fail if rules are not met
-      kustomize build ${{ inputs.argocd-overlay-path }} | kube-score score --kubernetes-version "${{ inputs.k8s-version }}" --ignore-test pod-networkpolicy - && exit 0 || exit 0
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    shell: bash
-  
+        kustomize build "${{ inputs.argocd-overlay-path }}" | grep "KUSTOMIZE_ME" && exit $exitCode || exit 0
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
+
+    - name: "Kube-score"
+      run: |
+        ## TODO: check rules specified in kube-score.yaml only and fail if rules are not met
+        kustomize build ${{ inputs.argocd-overlay-path }} | kube-score score --kubernetes-version "${{ inputs.k8s-version }}" --ignore-test pod-networkpolicy - && exit 0 || exit 0
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash

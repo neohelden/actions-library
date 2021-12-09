@@ -10,7 +10,7 @@ inputs:
     description: base ref
     default: ${{ github.base_ref }}
     required: false
-  private-key-robot-account: 
+  private-key-robot-account:
     description: Private Key of a robot account for creating a token to access private repositories referenced within kustomization files
     required: true
   checkout-ref:
@@ -18,10 +18,9 @@ inputs:
     default: ${{ github.event.pull_request.head.sha }}
     required: false
 
-  
 runs:
   using: "composite"
-  
+
   steps:
     - uses: actions/checkout@v2
       with:
@@ -39,9 +38,9 @@ runs:
       shell: bash
 
     - id: kustomize-diff
-      run: |        
+      run: |
         TMP_DIR="$(mktemp -d)"
-        
+
         kustomizations=$(find . -maxdepth 4 -name kustomization.yaml -exec dirname {} \; | sort | uniq)
 
         function build {
@@ -76,7 +75,7 @@ runs:
         output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
         escaped_output=${output//$'\n'/'%0A'}
         echo "::set-output name=diff::$escaped_output"
-        printf "\n\nOutput: %s\n" "$escaped_output"          
+        printf "\n\nOutput: %s\n" "$escaped_output"
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       shell: bash

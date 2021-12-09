@@ -15,7 +15,7 @@ inputs:
     description: Branch name where releases are built from
     required: false
     default: main
-  release-prefix: 
+  release-prefix:
     description: "A prefix for the created release version"
     required: false
   release-extra-plugins:
@@ -29,7 +29,7 @@ inputs:
     default: tsconfig.build.json
     required: false
   dev-branch:
-    description: The staging branch in this project. 
+    description: The staging branch in this project.
     default: ${{ github.event.repository.default_branch }}
     required: false
   release-labels:
@@ -106,7 +106,7 @@ runs:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         NPM_TOKEN: ${{ inputs.npm-automation-token }}
-    
+
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: 2.6 # Not needed with a .ruby-version file

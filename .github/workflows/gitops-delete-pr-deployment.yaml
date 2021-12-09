@@ -1,7 +1,6 @@
 name: "Delete PR Deployment"
 on:
   workflow_call:
-
     inputs:
       argo-host:
         description: ArgoCd host
@@ -21,7 +20,7 @@ on:
         required: true
       argocd-auth-token:
         description: Token for authenticating on ArgoCD host
-        required: true      
+        required: true
 
 jobs:
   delete:
@@ -29,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     name: Delete PR-Deployment
-    
+
     env:
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
       ARGOCD_USERNAME: ""
