@@ -67,9 +67,7 @@ jobs:
             --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
             -b ${{ inputs.dev-gitops-base-branch }}
 
-  status-badge: 
-    needs: 
-      - build-docker-image
+  status-badge:
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.body, 'App Deployment') && (!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed')"
     timeout-minutes: 5
