@@ -189,6 +189,11 @@ on:
         required: false
         default: main
         type: string
+      workspaces-base-domain:
+        description: Domain name of the workspaces base
+        type: string
+        required: false
+        default: "dev.clusters.neohelden.com"
 
       maximize-build-space:
         type: boolean
@@ -344,6 +349,8 @@ jobs:
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
       ARGOCD_USERNAME: ""
       ARGOCD_PASSWORD: ""
+      WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
+      DEPLOYMENT_STATUS: "Workspace deployment"
 
     container:
       image: registry.neohelden.com/internal/argocd-action:1.0.2
@@ -410,6 +417,19 @@ jobs:
             "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
             }' \
           --fail
+
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "success",
+              "context": "${{ env.DEPLOYMENT_STATUS }}",
+              "description": "Deployment of workspace succeeced.",
+              "target_url": "https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ env.WORKSPACES_BASE }}"
+              }' \
+            --fail
 
       - name: set status failure
         if: ${{ failure() }}
