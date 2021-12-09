@@ -1,5 +1,5 @@
-name: Check Code Compliance
-description: Checks the code and dependencies for compliant licenses
+name: Attach asana task
+description: Attaches the current PR to an asana task, if a task can be identified
 
 inputs:
   asana-secret:
