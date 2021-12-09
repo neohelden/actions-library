@@ -492,7 +492,7 @@ jobs:
             ---
             ${{ github.event.pull_request.body }}
           github_token: ${{ secrets.github-token }}
-          destination_branch: ${{ github.event.pull_request.head.ref }}
+          destination_branch: ${{ github.event.pull_request.base.ref }}
 
   semantic-release:
     name: semantic-release
