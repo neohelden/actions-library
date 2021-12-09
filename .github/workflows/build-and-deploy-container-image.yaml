@@ -221,8 +221,21 @@ on:
       github-token:
         description: Token used for accessing GitHub.com
         required: true
+      asana-github-api-token:
+        description: Token used for asana github api access
+        required: false
 
 jobs:
+  
+  update-asana: 
+    name: Update asana tasks
+    runs-on: ubuntu-latest
+    if: secrets.asana-github-api-token
+    steps:
+      - name: Update asana tasks
+        uses: neohelden/actions-library/attach-asana-task@main
+        with:
+          asana-secret: ${{ secrets.asana-github-api-token }}
 
   build-and-test:
     name: build-and-test
