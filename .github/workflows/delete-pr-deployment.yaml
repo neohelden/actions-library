@@ -66,3 +66,22 @@ jobs:
             -a ${{ inputs.argo-base-app }} \
             --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
             -b ${{ inputs.dev-gitops-base-branch }}
+
+  status-badge: 
+    needs: 
+      - build-docker-image
+    runs-on: ubuntu-latest
+    if: "contains(github.event.pull_request.body, 'App Deployment') && (!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed')"
+    timeout-minutes: 5
+    steps:
+      - name: Strip lines
+        id: strip-lines
+        run: |
+          body=$(echo ${{ github.event.pull_request.body }} | tail -n+3)
+          echo ::set-output name=body::"$body"  
+      - name: Comment on PR
+        uses: kt3k/update-pr-description@v1.0.1
+        with:
+          pr_body: |
+            ${{ steps.strip-lines.outputs.body }}
+          github_token: ${{ secrets.github-token }}
