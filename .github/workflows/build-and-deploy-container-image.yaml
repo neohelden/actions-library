@@ -226,6 +226,16 @@ on:
         required: false
 
 jobs:
+  
+  update-asana: 
+    name: Update asana tasks
+    runs-on: ubuntu-latest
+    if: ${{ inputs.asana-github-api-token }} != ''
+    steps:
+      - name: Update asana tasks
+        uses: neohelden/actions-library/attach-asana-task@asana-task
+        with:
+          api_token: ${{ secrets.asana-github-api-token }}
 
   build-and-test:
     name: build-and-test
@@ -284,14 +294,13 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@asana-task #TODO: Change later
+      - uses: neohelden/actions-library/check-code-compliance@main
         with: 
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
           artifact-name: ${{ inputs.artifact-name }}
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
-          asana-secret: ${{ secrets.asana-github-api-token }}
           
   build-docker-image:
     name: build-docker-image
