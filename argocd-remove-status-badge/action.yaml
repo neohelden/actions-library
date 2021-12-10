@@ -5,14 +5,17 @@ inputs:
   github-token:
     description: A github token for the action
     required: true
+  check-for-line:
+    description: The line to check for
+    required: false
+    default: The badge was added automatically
 
 runs:
   using: "composite"
-  env:
-    PR_ADDITION_LAST_LINE: The badge was added automatically
-
   steps:
     - name: Remove status
+      env:
+        PR_ADDITION_LAST_LINE: ${{ inputs.check-for-line }}
       if: contains(github.event.pull_request.body, '${{ env.PR_ADDITION_LAST_LINE }}')
       uses: actions/github-script@v5
       with:
@@ -25,9 +28,12 @@ runs:
 
           let found = false;
           const prBody = pr.data.body;
-          let newBody = prBody.split('\n').filter(line => found || (found = line.contains(process.env.PR_ADDITION_LAST_LINE)));
-          newBody.shift(); # Remove the first line (---)
-          newBody = newBody.join('\n');
+          let newBody = prBody.split('\n').filter(line => {
+             let tmp = found;
+             found = line.contains(process.env.PR_ADDITION_LAST_LINE));
+             return tmp;
+          }).join('\n');
+          
           github.rest.pulls.update({
             owner: context.repo.owner,
             repo: context.repo.repo,
