@@ -498,9 +498,9 @@ jobs:
             :tada: This PR is an App Deployment :tada: 
             [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
             View the app at: https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
-
+            The badge was added automatically. Please do not edit above this line!
             ---
-            Please do not edit this part above
+            
         with:
           script: |
             const pr = await github.rest.pulls.get({
