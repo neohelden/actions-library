@@ -26,7 +26,7 @@ on:
       workspaces-base-domain:
         description: Domain name of the workspaces base
         type: string
-        required: true
+        required: false
         default: "dev.clusters.neohelden.com"
 
     secrets:
