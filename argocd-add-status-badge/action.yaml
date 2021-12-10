@@ -39,7 +39,7 @@ runs:
           View the app at: https://${{ inputs.app-prefix }}${{ inputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
           The badge was added automatically. Please do not edit above this line!
           ---
-          
+
       with:
         script: |
           const pr = await github.rest.pulls.get({
