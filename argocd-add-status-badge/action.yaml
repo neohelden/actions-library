@@ -1,0 +1,59 @@
+name: Attach wait for healthy
+description: Attaches the current PR to an asana task, if a task can be identified
+
+inputs:
+  github-token:
+    description: A github token for the action
+    required: true
+  argo-host:
+    description: ArgoCd host
+    required: false
+    default: https://argocd.dev.clusters.neohelden.com
+  argo-app:
+    description: ArgoCD app being used as base for deploying the built container image
+    required: false
+    default: neap
+  workspaces-base-domain:
+    description: Domain name of the workspaces base
+    required: false
+    default: "dev.clusters.neohelden.com"
+  argo-suffix:
+    description: Suffix for the ArgoCD app name
+    required: false
+    default: ""
+  app-prefix:
+    description: Prefix for the ArgoCD App URL name
+    required: false
+    default: "server"
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Comment on PR
+      uses: actions/github-script@v5
+      env:
+        PR_ADDITION: |
+          :tada: This PR is an App Deployment :tada: 
+          [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-app }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-app }})
+          View the app at: https://${{ inputs.app-prefix }}${{ inputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
+          The badge was added automatically. Please do not edit above this line!
+          ---
+          
+      with:
+        script: |
+          const pr = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          const prBody = pr.data.body;
+          const newBody = process.env.PR_ADDITION + '\n' + prBody;
+          github.rest.pulls.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.number,
+            body: newBody
+          });
+        github-token: ${{ secrets.github-token }}

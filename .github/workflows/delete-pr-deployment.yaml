@@ -72,26 +72,9 @@ jobs:
 
   status-badge:
     runs-on: ubuntu-latest
-    if: "contains(github.event.pull_request.body, 'App Deployment') && (!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed')"
+    if: "!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed'"
     timeout-minutes: 5
     steps:
-      - name: Remove status
-        uses: actions/github-script@v5
+      - uses: neohelden/actions-library@add-status-badge
         with:
-          script: |
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-
-            let i = 0;
-            const prBody = pr.data.body;
-            const newBody = prBody.split('\n').filter(line => i++ > 5).join('\n');
-            github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.number,
-              body: newBody
-            });
-          github-token: ${{ secrets.github-token }}
+          github-token: "${{ secrets.github-token }}"

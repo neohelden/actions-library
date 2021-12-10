@@ -353,14 +353,15 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      argo-suffix: ${{ steps.prepare.outputs.argocd-suffix }}
+
     env:
-      ARGOCD_STATUS: "ArgoCD PR-Deployment"
       ## workaround since we only have a token setup in Github, but the script expects username/password
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
       ARGOCD_USERNAME: ""
       ARGOCD_PASSWORD: ""
       WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
-      DEPLOYMENT_STATUS: "Workspace deployment"
 
     container:
       image: registry.neohelden.com/internal/argocd-action:1.0.2
@@ -390,73 +391,6 @@ jobs:
             -b ${{ inputs.dev-gitops-base-branch }} \
             -i registry.neohelden.com/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
 
-          curl --request POST \
-          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          --header 'authorization: Bearer ${{ secrets.github-token }}' \
-          --header 'content-type: application/json' \
-          --header 'accept: application/vnd.github.v3+json' \
-          --data '{
-            "state": "pending",
-            "context": "${{ env.ARGOCD_STATUS }}",
-            "description": "${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} available in Argocd UI -->",
-            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
-            }' \
-          --fail
-
-      - name: Wait-for-healthy"
-        ## TODO: set to 5 minutes once deployment goes through smoothly
-        timeout-minutes: 1
-        run: |
-          /argocd wait-for-healthy \
-            -h ${{ inputs.argo-host }} \
-            -u ${{ env.ARGOCD_USERNAME }} \
-            -p ${{ env.ARGOCD_PASSWORD }} \
-            -a ${{ inputs.argo-base-app }} \
-            --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
-            -b ${{ inputs.dev-gitops-base-branch }}
-
-          curl --request POST \
-          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          --header 'authorization: Bearer ${{ secrets.github-token }}' \
-          --header 'content-type: application/json' \
-          --header 'accept: application/vnd.github.v3+json' \
-          --data '{
-            "state": "success",
-            "context": "${{ env.ARGOCD_STATUS }}",
-            "description": "${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} became healthy.",
-            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
-            }' \
-          --fail
-
-          curl --request POST \
-            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-            --header 'authorization: Bearer ${{ secrets.github-token }}' \
-            --header 'content-type: application/json' \
-            --header 'accept: application/vnd.github.v3+json' \
-            --data '{
-              "state": "success",
-              "context": "${{ env.DEPLOYMENT_STATUS }}",
-              "description": "Deployment of workspace succeeced.",
-              "target_url": "https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ env.WORKSPACES_BASE }}"
-              }' \
-            --fail
-
-      - name: set status failure
-        if: ${{ failure() }}
-        run: |
-          curl --request POST \
-          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          --header 'authorization: Bearer ${{ secrets.github-token }}' \
-          --header 'content-type: application/json' \
-          --header 'accept: application/vnd.github.v3+json' \
-          --data '{
-            "state": "failure",
-            "context": "${{ env.ARGOCD_STATUS }}",
-            "description": "Deployment of ${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }} failed!",
-            "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}"
-            }' \
-          --fail
-
   update-gitops:
     if: github.event_name == 'push' && github.event.ref == 'refs/heads/develop' && inputs.gitops-repository != ''
 
@@ -480,43 +414,14 @@ jobs:
     if: "!contains(github.event.pull_request.body, 'App Deployment') && contains(github.event.pull_request.labels.*.name, 'deploy')"
     runs-on: ubuntu-latest
     needs:
-      - build-docker-image
+      - deploy-pr
     timeout-minutes: 5
     steps:
-      - name: Prepare
-        id: prepare
-        run: |
-          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
-            abbreviation=$abbreviation"${element:0:1}"
-          done
-
-          echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
-      - name: Comment on PR
-        uses: actions/github-script@v5
-        env:
-          PR_ADDITION: |
-            :tada: This PR is an App Deployment :tada: 
-            [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}${{ steps.prepare.outputs.argocd-suffix }})
-            View the app at: https://server${{ steps.prepare.outputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
-            The badge was added automatically. Please do not edit above this line!
-            ---
-            
+      - uses: neohelden/actions-library/argo-add-status-badge@add-status-badge
         with:
-          script: |
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-
-            const prBody = pr.data.body;
-            const newBody = process.env.PR_ADDITION + '\n' + prBody;
-            github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.number,
-              body: newBody
-            });
+          argo-host: ${{ inputs.argo-host }}
+          argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}
+          argo-suffix: ${{ needs.deploy-pr.outputs.argo-suffix }}
           github-token: ${{ secrets.github-token }}
 
   semantic-release:

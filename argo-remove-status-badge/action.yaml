@@ -1,0 +1,37 @@
+name: Attach wait for healthy
+description: Attaches the current PR to an asana task, if a task can be identified
+
+inputs:
+  github-token:
+    description: A github token for the action
+    required: true
+
+runs:
+  using: "composite"
+  env:
+    PR_ADDITION_LAST_LINE: The badge was added automatically
+
+  steps:
+      - name: Remove status
+        if: contains(github.event.pull_request.body, '${{ env.PR_ADDITION_LAST_LINE }}')
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            let found = false;
+            const prBody = pr.data.body;
+            let newBody = prBody.split('\n').filter(line => found || (found = line.contains(process.env.PR_ADDITION_LAST_LINE)));
+            newBody.shift(); # Remove the first line (---)
+            newBody = newBody.join('\n');
+            github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.number,
+              body: newBody
+            });
+          github-token: ${{ secrets.github-token }}
