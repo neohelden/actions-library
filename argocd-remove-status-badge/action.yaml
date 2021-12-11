@@ -34,7 +34,7 @@ runs:
              found = line.includes(process.env.PR_ADDITION_LAST_LINE);
              return tmp;
           }).join('\n');
-          
+
           github.rest.pulls.update({
             owner: context.repo.owner,
             repo: context.repo.repo,
