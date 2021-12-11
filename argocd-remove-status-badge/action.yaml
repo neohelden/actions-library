@@ -40,4 +40,4 @@ runs:
             pull_number: context.payload.number,
             body: newBody
           });
-        github-token: ${{ secrets.github-token }}
+        github-token: ${{ inputs.github-token }}
