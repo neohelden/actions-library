@@ -30,7 +30,7 @@ runs:
           const prBody = pr.data.body;
           let newBody = prBody.split('\n').filter(line => {
              let tmp = found;
-             found = line.contains(process.env.PR_ADDITION_LAST_LINE));
+             found = line.contains(process.env.PR_ADDITION_LAST_LINE);
              return tmp;
           }).join('\n');
           
