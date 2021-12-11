@@ -37,8 +37,10 @@ runs:
           :tada: This PR is an App Deployment :tada: 
           [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-app }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-app }})
           View the app at: https://${{ inputs.app-prefix }}${{ inputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
-          The badge was added automatically. Please do not edit above this line!
+          The badge was added automatically. 
+
           ---
+          Please do not edit above this line!
 
       with:
         script: |
