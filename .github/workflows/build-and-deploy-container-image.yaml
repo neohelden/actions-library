@@ -244,6 +244,7 @@ jobs:
   update-asana:
     name: Update asana tasks
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'pull_request_review'
     steps:
       - name: Update asana tasks
         uses: neohelden/actions-library/attach-asana-task@main

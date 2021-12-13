@@ -12,7 +12,7 @@ runs:
 
   steps:
     - name: Create pull request attachments
-      if: inputs.asana-secret != '' && (github.event_name == 'pull_request' || github.event_name == 'pull_request_review')
+      if: inputs.asana-secret != ''
       uses: Asana/create-app-attachment-github-action@latest
       id: postAttachment
       with:
