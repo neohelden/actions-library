@@ -59,6 +59,7 @@ jobs:
         with:
           argocd-overlay-path: ${{ inputs.argocd-overlay-path }}
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
+          k8s-version: ${{ inputs.k8s-version }}
 
   kustomize-diff:
     needs:
