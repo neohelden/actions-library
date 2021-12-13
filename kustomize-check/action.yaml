@@ -16,6 +16,9 @@ inputs:
     description: Ref to checkout from Git
     default: ${{ github.event.pull_request.head.sha }}
     required: false
+  k8s-version:
+    description: Version of Kubernetes to use
+    required: true
 
 runs:
   using: "composite"
