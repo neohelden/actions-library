@@ -1,5 +1,5 @@
-name: Attach wait for healthy
-description: Attaches the current PR to an asana task, if a task can be identified
+name: ArgoCD Status Badge Attach
+description: Attaches an ArgoCD status badge to the PR description
 
 inputs:
   github-token:
