@@ -417,7 +417,7 @@ jobs:
       - deploy-pr
     timeout-minutes: 5
     steps:
-      - uses: neohelden/actions-library/argocd-add-status-badge@add-status-badge
+      - uses: neohelden/actions-library/argocd-add-status-badge@main
         with:
           argo-host: ${{ inputs.argo-host }}
           argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}

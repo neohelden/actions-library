@@ -75,6 +75,6 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed'"
     timeout-minutes: 5
     steps:
-      - uses: neohelden/actions-library/argocd-remove-status-badge@add-status-badge
+      - uses: neohelden/actions-library/argocd-remove-status-badge@main
         with:
           github-token: "${{ secrets.github-token }}"
