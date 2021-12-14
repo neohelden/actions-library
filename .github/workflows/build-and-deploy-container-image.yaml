@@ -168,10 +168,28 @@ on:
         description: Default development branch of this repository
         default: ${{ github.event.repository.default_branch }}
         required: false
+
       release-branch:
         type: string
         description: Branch used for releases
         default: main
+        required: false
+      release-prefix:
+        type: string
+        description: "A prefix for the created release version"
+        required: false
+      release-extra-plugins:
+        type: string
+        description: Comma separated list of extra plugins to load for the sematic-release package
+        required: false
+      npm-automation-token:
+        type: string
+        description: Automation token for NPM to publish packages
+        required: false
+      release-labels:
+        type: string
+        description: A comma seperated list of labels to add to a release PR
+        default: release
         required: false
 
       argo-host:
@@ -244,6 +262,7 @@ jobs:
   update-asana:
     name: Update asana tasks
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'pull_request_review'
     steps:
       - name: Update asana tasks
         uses: neohelden/actions-library/attach-asana-task@main
@@ -401,9 +420,9 @@ jobs:
     steps:
       - uses: neohelden/actions-library/create-gitops-pr@main
         with:
+          image-registry: ${{ inputs.image-registry }}
           registry-org: ${{ inputs.registry-org }}
           image-name: ${{ inputs.image-name }}
-          image-registry: ${{ inputs.image-registry }}
           image-tag: ${{ inputs.image-tag }}
           gitops-repository: ${{ inputs.gitops-repository }}
           gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
@@ -433,6 +452,13 @@ jobs:
     steps:
       - uses: neohelden/actions-library/semantic-release@main
         with:
+          checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
           gh-app-priv-key: ${{ secrets.gh-app-private-key }}
           release-branch: ${{ inputs.release-branch }}
+          release-prefix: ${{ inputs.release-prefix }}
+          release-extra-plugins: ${{ inputs.release-extra-plugins }}
+          npm-automation-token: ${{ inputs.npm-automation-token }}
+          tsconfig-build-file: ${{ inputs.tsconfig-build-file }}
+          dev-branch: ${{ inputs.default-branch }}
+          release-labels: ${{ inputs.release-labels }}
