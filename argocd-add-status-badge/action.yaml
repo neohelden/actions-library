@@ -36,7 +36,7 @@ runs:
         PR_ADDITION: |
           :tada: This PR is an App Deployment :tada: 
           [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-app }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-app }})
-          View the app at: https://${{ inputs.app-prefix }}${{ inputs.argocd-suffix }}.${{ inputs.workspaces-base-domain }}
+          View the app at: https://${{ inputs.app-prefix }}${{ inputs.argo-suffix }}.${{ inputs.workspaces-base-domain }}
           The badge was added automatically. 
 
           ---
@@ -50,7 +50,10 @@ runs:
             pull_number: context.issue.number
           });
 
-          const prBody = pr.data.body;
+          var prBody = pr.data.body;
+          if (prBody == null) {
+            prBody = ""
+          }
           const newBody = process.env.PR_ADDITION + '\n' + prBody;
           github.rest.pulls.update({
             owner: context.repo.owner,
