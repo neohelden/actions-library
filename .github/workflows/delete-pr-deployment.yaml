@@ -31,7 +31,7 @@ on:
         required: true
       github-token:
         description: Token for authenticating on GitHub
-        required: false
+        required: true
 
 jobs:
   ## cannot live in a Composite since that does not support Actions hosted in private registries
