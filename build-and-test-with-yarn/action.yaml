@@ -109,19 +109,21 @@ runs:
         ref: ${{ inputs.checkout-ref }}
 
     - name: Resolve yarn dependencies
+      id: yarn-deps
       run: |
         FILE=yarn.lock
         if [ -f "$FILE" ]
         then
           yarn --frozen-lockfile 
         else
-          echo "$FILE does not exist - exiting"
-          exit 1
+          echo "$FILE does not exist - ignoring"
+          echo "::set-output name=no-yarn::true"
         fi
       working-directory: ./
       shell: bash
 
     - name: Prettier
+      if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
         if [ $(jq -r .devDependencies.prettier package.json) = "null" ] && exit
         then
@@ -158,17 +160,21 @@ runs:
       shell: bash
 
     - name: Test
+      id: test
+      if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
         if [ $(jq -r .devDependencies.jest package.json) = "null" ] && exit
         then
           echo "'jest' is not configured for this project - ignoring"
         else
           npx jest --ci --coverage --detectOpenHandles
+          echo "::set-output name=coverageExists::true"
         fi
       working-directory: ./
       shell: bash
 
     - name: Prepare SonarCloud
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       run: |
         curl --include \
           --request POST \
@@ -186,6 +192,7 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
