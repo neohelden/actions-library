@@ -151,8 +151,7 @@ runs:
       run: |
         npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
 
-
-    - name: ESlint Annotate 
+    - name: ESlint Annotate
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
       shell: bash
       run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
