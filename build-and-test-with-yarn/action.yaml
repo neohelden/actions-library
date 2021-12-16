@@ -134,17 +134,25 @@ runs:
       working-directory: ./
       shell: bash
 
-    - name: ESLint
+    - name: Test for ESLint
+      id: checkEsLint
       run: |
         FILE=${{ inputs.eslint-configuration-file }}
         if [ -f "$FILE" ]
         then
-          npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
-        else
-          echo "'${{ inputs.eslint-configuration-file }}' does not exist - ignoring"
+          echo "::set-output name=runEslint::true"
         fi
       working-directory: ./
       shell: bash
+
+    - name: ESlint
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
+      uses: sibiraj-s/action-eslint@v2
+      with:
+        github-token: ${{ inputs.github-token }} # Optional
+        eslint-args: '--ignore-path=.gitignore --quiet'
+        extensions: ${{ inputs.eslint-ext-patterns }}
+        annotations: true
 
     - name: Build
       run: |
