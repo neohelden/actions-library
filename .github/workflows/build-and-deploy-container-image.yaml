@@ -30,7 +30,7 @@ on:
       eslint-ext-patterns:
         type: string
         description: Comma separated list of file patterns eslint will check
-        default: .js,.jsx,.ts,.tsx
+        default: js,jsx,ts,tsx
         required: false
       eslint-configuration-file:
         type: string
