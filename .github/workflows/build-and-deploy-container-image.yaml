@@ -296,7 +296,7 @@ jobs:
           apt-get update
           apt-get install -y bash jq
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: neohelden/actions-library/build-and-test-with-yarn@eslint-action
         with:
           sonar-token: ${{ secrets.sonar-token }}
           github-token: ${{ secrets.github-token }}
