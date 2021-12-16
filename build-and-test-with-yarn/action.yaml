@@ -155,7 +155,6 @@ runs:
     - name: ESlint Annotate 
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
       shell: bash
-      continue-on-error: true
       run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
 
     - name: Annotate Code Linting Results
