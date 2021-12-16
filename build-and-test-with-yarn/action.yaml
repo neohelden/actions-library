@@ -150,7 +150,7 @@ runs:
       uses: sibiraj-s/action-eslint@v2
       with:
         github-token: ${{ inputs.github-token }} # Optional
-        eslint-args: '--ignore-path=.gitignore --quiet'
+        eslint-args: '--ignore-path=.gitignore'
         extensions: ${{ inputs.eslint-ext-patterns }}
         annotations: true
 
