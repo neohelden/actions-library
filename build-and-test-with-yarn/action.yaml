@@ -158,6 +158,7 @@ runs:
       run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
 
     - name: Annotate Code Linting Results
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true' && github.event_name == 'pull_request'
       uses: ataylorme/eslint-annotate-action@1.2.0
       with:
         repo-token: "${{ inputs.github-token }}"
