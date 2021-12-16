@@ -410,25 +410,6 @@ jobs:
             -b ${{ inputs.dev-gitops-base-branch }} \
             -i registry.neohelden.com/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
 
-  update-gitops:
-    if: github.event_name == 'push' && github.event.ref == 'refs/heads/develop' && inputs.gitops-repository != ''
-
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs:
-      - build-docker-image
-    steps:
-      - uses: neohelden/actions-library/create-gitops-pr@main
-        with:
-          image-registry: ${{ inputs.image-registry }}
-          registry-org: ${{ inputs.registry-org }}
-          image-name: ${{ inputs.image-name }}
-          image-tag: ${{ inputs.image-tag }}
-          gitops-repository: ${{ inputs.gitops-repository }}
-          gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
-          gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-private-key: ${{ secrets.gh-app-private-key }}
-
   status-badge:
     if: (!contains(github.event.pull_request.body, 'App Deployment')) && contains(github.event.pull_request.labels.*.name, 'deploy')
     runs-on: ubuntu-latest

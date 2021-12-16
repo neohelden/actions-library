@@ -146,6 +146,7 @@ runs:
           type=schedule,pattern=nightly
           type=edge,branch=develop
           type=ref,event=pr
+          type=sha,prefix={{branch}}-
 
     - uses: docker/setup-buildx-action@v1
 
