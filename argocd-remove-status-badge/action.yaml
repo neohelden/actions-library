@@ -26,6 +26,8 @@ runs:
             pull_number: context.issue.number
           });
 
+          console.log(pr);
+
           let found = false;
           const prBody = pr.data.body;
           let newBody = prBody.split('\n').filter(line => {
