@@ -171,9 +171,12 @@ runs:
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+          type=registry,ref=${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:buildcache
           ${{ steps.docker_meta.outputs.tags }}
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
-        cache-to: type=inline
+        cache-to: |
+          type=inline
+          type=registry,ref=${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:buildcache,mode=max
         platforms: ${{ inputs.platforms }}
         load: true
         pull: true
