@@ -343,7 +343,7 @@ jobs:
       - check-code-compliance
 
     steps:
-      - uses: neohelden/actions-library/build-docker-image@main
+      - uses: neohelden/actions-library/build-docker-image@feat/registry-cache
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
           image-registry-token: ${{ secrets.image-registry-token }}
