@@ -9,7 +9,7 @@ inputs:
     description: Username used to login at the image registry
     required: true
   image-registry-token:
-    description: TOken use to login at the image registry
+    description: Token use to login at the image registry
     required: true
   registry-org:
     description: Organization within the image registry where to push container images too

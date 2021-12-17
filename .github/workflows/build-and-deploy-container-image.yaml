@@ -234,7 +234,7 @@ on:
         description: Username used to login at the image registry
         required: true
       image-registry-token:
-        description: TOken use to login at the image registry
+        description: Token use to login at the image registry
         required: true
       sonar-token:
         required: true
@@ -427,7 +427,7 @@ jobs:
           gitops-repository: ${{ inputs.gitops-repository }}
           gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
           gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-priv-key: ${{ secrets.gh-app-private-key }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
 
   status-badge:
     if: (!contains(github.event.pull_request.body, 'App Deployment')) && contains(github.event.pull_request.labels.*.name, 'deploy')
@@ -454,7 +454,7 @@ jobs:
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-priv-key: ${{ secrets.gh-app-private-key }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
           release-branch: ${{ inputs.release-branch }}
           release-prefix: ${{ inputs.release-prefix }}
           release-extra-plugins: ${{ inputs.release-extra-plugins }}

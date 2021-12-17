@@ -31,14 +31,14 @@ on:
         required: false
 
     secrets:
-      HARBOR_USERNAME:
-        required: true
+      image-registry-username:
         description: Username used to login at the image registry
-      HARBOR_TOKEN:
         required: true
-        description: TOken use to login at the image registry
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
 
-      SLACK_RELEASE_WEBHOOK_URL:
+      slack-release-webhook-url:
         required: false
         description: A webhook url to post notifications about releases against
 
@@ -58,8 +58,8 @@ jobs:
       - uses: docker/login-action@v1
         with:
           registry: ${{ inputs.image-registry }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_TOKEN }}
+          username: ${{ secrets.image-registry-username }}
+          password: ${{ secrets.image-registry-token }}
 
       - shell: bash
         run: docker pull ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
@@ -80,9 +80,9 @@ jobs:
       - name: Notify release via Slack
         shell: bash
         run: |
-          if [ ! "${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}" = "" ]; then
+          if [ ! "${{ secrets.slack-release-webhook-url }}" = "" ]; then
             curl --request POST \
-              --url ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }} \
+              --url ${{ secrets.slack-release-webhook-url }} \
               --data-urlencode 'payload= {
                 "username": "GhostRider",
                 "icon_emoji": ":ghost:",
@@ -120,6 +120,6 @@ jobs:
           gitops-repository: ${{ inputs.gitops-repository }}
           gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
           gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-priv-key: ${{ secrets.gh-app-private-key }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
           gitops-pr-branch: latest-release
           gitops-pr-title-prefix: "[Release]"

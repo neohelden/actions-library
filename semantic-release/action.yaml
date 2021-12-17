@@ -8,7 +8,7 @@ inputs:
   gh-app-id:
     description: Id of a Github App used to trigger follow-up Github Action workflows
     required: true
-  gh-app-priv-key:
+  gh-app-private-key:
     description: Private key of a Github App used to trigger follow-up Github Action workflows
     required: true
   release-branch:
@@ -86,7 +86,7 @@ runs:
       uses: tibdex/github-app-token@v1.4.0
       with:
         app_id: ${{ inputs.gh-app-id }}
-        private_key: ${{ inputs.gh-app-priv-key }}
+        private_key: ${{ inputs.gh-app-private-key }}
 
     - name: Create semantic release
       shell: bash
