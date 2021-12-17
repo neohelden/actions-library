@@ -34,7 +34,7 @@ on:
         description: Username used to login at the image registry
         required: true
       image-registry-token:
-        description: TOken use to login at the image registry
+        description: Token use to login at the image registry
         required: true
       argocd-auth-token:
         description: Token for authenticating on ArgoCD host
