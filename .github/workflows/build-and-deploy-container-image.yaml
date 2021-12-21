@@ -392,7 +392,7 @@ jobs:
     steps:
       - name: Prepare build secrets
         id: dockerArgs
-        if: github.ref == 'refs/heads/develop' || github.ref = 'refs/heads/master' || github.ref = 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
