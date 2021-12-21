@@ -30,6 +30,15 @@ on:
         default: kustomizations/overlays/release
         required: false
 
+      sentry-org:
+        description: Sentry organization
+        required: false
+        type: string
+      sentry-project:
+        description: Sentry project
+        required: false
+        type: string
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -51,12 +60,6 @@ on:
 
       sentry-auth-token:
         description: Sentry authentication token
-        required: false
-      sentry-org:
-        description: Sentry organization
-        required: false
-      sentry-project:
-        description: Sentry project
         required: false
 
 jobs:
@@ -127,8 +130,8 @@ jobs:
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
-          SENTRY_ORG: ${{ secrets.sentry-org }}
-          SENTRY_PROJECT: ${{ secrets.sentry-project }}
+          SENTRY_ORG: ${{ inputs.sentry-org }}
+          SENTRY_PROJECT: ${{ inputs.sentry-project }}
         with:
           version: ${{ github.event.release.tag_name }}
 
