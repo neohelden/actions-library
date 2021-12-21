@@ -26,8 +26,8 @@ runs:
             pull_number: context.issue.number
           });
 
-          let found = false;
           const prBody = pr.data.body || "";
+          let found = !prBody.includes(process.env.PR_ADDITION_LAST_LINE);
           let newBody = prBody.split('\n').filter(line => {
              let tmp = found;
              if (found) return true;
