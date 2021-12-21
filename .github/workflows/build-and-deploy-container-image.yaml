@@ -228,11 +228,11 @@ on:
         type: string
         default: kustomizations/overlays/shared-dev
         required: false
-      sentry-org: 
+      sentry-org:
         default: neohelden
         required: false
         type: string
-      sentry-project: 
+      sentry-project:
         default: ${{ github.event.repository.name }}
         description: The project to associate this repo to
         required: false
@@ -266,7 +266,7 @@ on:
       asana-github-api-token:
         description: Token used for asana github api access
         required: false
-      sentry-auth-token: 
+      sentry-auth-token:
         description: A sentry token available at /sentry-auth in the docker build
         required: false
 
