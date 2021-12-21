@@ -49,6 +49,16 @@ on:
         description: Private key of a Github App being used for triggering other workflows
         required: true
 
+      sentry-auth-token:
+        description: Sentry authentication token
+        required: false
+      sentry-org:
+        description: Sentry organization
+        required: false
+      sentry-project:
+        description: Sentry project
+        required: false
+
 jobs:
   release-docker-image:
     runs-on: ubuntu-latest
@@ -102,6 +112,25 @@ jobs:
                 }]
               }'            
           fi
+
+  associate-commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ secrets.sentry-auth-token }} != ''
+    needs:
+      - release-docker-image
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+          SENTRY_ORG: ${{ secrets.sentry-org }}
+          SENTRY_PROJECT: ${{ secrets.sentry-project }}
+        with:
+          version: ${{ github.event.release.tag_name }}
 
   update-gitops:
     if: inputs.gitops-repository != ''
