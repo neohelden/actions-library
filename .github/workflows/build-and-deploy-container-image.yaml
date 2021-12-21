@@ -276,7 +276,7 @@ jobs:
            [ "${{ github.event.pull_request.state }}" == "closed" ]; then
             isPrOpen=false
           fi
-          echo ::set-output name=is-pr-open::"$isPrOpen"
+          echo "::set-output name=is-pr-open::$isPrOpen"
 
   update-asana:
     if: needs.validate-event.outputs.is-pr-open == 'true' || github.event_name == 'pull_request_review'
