@@ -34,10 +34,12 @@ on:
         description: Sentry organization
         required: false
         type: string
+        default: neohelden
       sentry-project:
         description: Sentry project
         required: false
         type: string
+        default: ${{ github.event.repository.name }}
 
     secrets:
       image-registry-username:
@@ -119,7 +121,7 @@ jobs:
   associate-commits:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ secrets.sentry-auth-token }} != ''
+    if: secrets.sentry-auth-token != ''
     needs:
       - release-docker-image
     steps:
