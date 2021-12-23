@@ -228,11 +228,12 @@ on:
         type: string
         default: kustomizations/overlays/shared-dev
         required: false
-      sentry-org: 
+      sentry-organization:
         default: neohelden
+        description: The sentry organization
         required: false
         type: string
-      sentry-project: 
+      sentry-project:
         default: ${{ github.event.repository.name }}
         description: The project to associate this repo to
         required: false
@@ -266,7 +267,7 @@ on:
       asana-github-api-token:
         description: Token used for asana github api access
         required: false
-      sentry-auth-token: 
+      sentry-auth-token:
         description: A sentry token available at /sentry-auth in the docker build
         required: false
 
@@ -391,9 +392,9 @@ jobs:
     steps:
       - name: Prepare build secrets
         id: dockerArgs
-        if: github.ref == 'refs/heads/develop' || github.ref = 'refs/heads/master' || github.ref = 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
-          echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ inputs.sentry-auth-token }}"
+          echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
       - uses: neohelden/actions-library/build-docker-image@main
         with:
@@ -411,7 +412,7 @@ jobs:
           platforms: ${{ inputs.platforms }}
           docker-push-build-args: ${{ inputs.docker-push-build-args }}
           docker-push-build-secrets: |
-            sentry-org=${{ inputs.sentry-org }}
+            sentry-org=${{ inputs.sentry-organization }}
             sentry-project=${{ inputs.sentry-project }}
             ${{ steps.dockerArgs.outputs.sentry-conditional-token }}
             ${{ inputs.docker-push-build-secrets }}

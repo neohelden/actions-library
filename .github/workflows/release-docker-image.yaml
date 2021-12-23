@@ -30,7 +30,7 @@ on:
         required: false
         type: string
         default: ${{ github.event.repository.name }}
-      sentry-release-suffix: 
+      sentry-release-suffix:
         description: Suffix to append to a release (like a run number etc..)
         required: false
         default: ""
@@ -106,7 +106,7 @@ jobs:
               }'            
           fi
 
-  # Creates a new release for the app. Additionally associates commits to the release. 
+  # Creates a new release for the app. Additionally associates commits to the release.
   associate-commits:
     runs-on: ubuntu-latest
     timeout-minutes: 20
