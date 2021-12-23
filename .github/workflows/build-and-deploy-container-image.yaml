@@ -200,7 +200,7 @@ on:
       argo-base-app:
         description: ArgoCD app being used as base for deploying the built container image
         required: false
-        default: neap
+        default: neap-develop
         type: string
       dev-gitops-base-branch:
         description: Branch within a gitops repositoriy used by ArgoCD

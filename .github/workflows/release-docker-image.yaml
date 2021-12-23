@@ -20,6 +20,7 @@ on:
         required: false
         default: ${{ github.event.repository.name }}
 
+<<<<<<< HEAD
       gitops-repository:
         description: gitops repository name with owner
         type: string
@@ -41,6 +42,8 @@ on:
         type: string
         default: ${{ github.event.repository.name }}
 
+=======
+>>>>>>> main
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -53,6 +56,7 @@ on:
         required: false
         description: A webhook url to post notifications about releases against
 
+<<<<<<< HEAD
       gh-app-id:
         description: Id of a Github App being used for triggering other workflows
         required: true
@@ -64,6 +68,8 @@ on:
         description: Sentry authentication token
         required: false
 
+=======
+>>>>>>> main
 jobs:
   release-docker-image:
     runs-on: ubuntu-latest
@@ -139,24 +145,3 @@ jobs:
           SENTRY_LOG_LEVEL: debug
         with:
           version: ${{ github.event.release.tag_name }}
-
-  update-gitops:
-    if: inputs.gitops-repository != ''
-
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs:
-      - release-docker-image
-    steps:
-      - uses: neohelden/actions-library/create-gitops-pr@main
-        with:
-          registry-org: ${{ inputs.registry-org }}
-          image-name: ${{ inputs.image-name }}
-          image-registry: ${{ inputs.image-registry }}
-          image-tag: ${{ github.event.release.tag_name }}
-          gitops-repository: ${{ inputs.gitops-repository }}
-          gitops-overlay-dir: ${{ inputs.gitops-overlay-dir }}
-          gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-private-key: ${{ secrets.gh-app-private-key }}
-          gitops-pr-branch: latest-release
-          gitops-pr-title-prefix: "[Release]"
