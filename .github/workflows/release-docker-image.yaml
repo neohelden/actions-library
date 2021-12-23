@@ -136,6 +136,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
           SENTRY_ORG: ${{ inputs.sentry-org }}
           SENTRY_PROJECT: ${{ inputs.sentry-project }}
+          SENTRY_LOG_LEVEL: debug
         with:
           version: ${{ github.event.release.tag_name }}
 
