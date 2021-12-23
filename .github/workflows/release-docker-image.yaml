@@ -121,7 +121,9 @@ jobs:
   associate-commits:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: secrets.sentry-auth-token != ''
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+    if: env.SENTRY_AUTH_TOKEN != ''
     needs:
       - release-docker-image
     steps:
