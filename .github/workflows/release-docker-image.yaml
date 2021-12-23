@@ -107,7 +107,7 @@ jobs:
           fi
 
   # Creates a new release for the app. Additionally associates commits to the release.
-  # The sentry-auth-token needs permission org:read,release:admin to work properly. 
+  # The sentry-auth-token needs permission org:read,release:admin to work properly.
   associate-commits:
     runs-on: ubuntu-latest
     timeout-minutes: 20
