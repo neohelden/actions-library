@@ -18,18 +18,6 @@ on:
         type: string
         description: Name of the Docker image.
         required: false
-        default: ${{ github.event.repository.name }}
-
-<<<<<<< HEAD
-      gitops-repository:
-        description: gitops repository name with owner
-        type: string
-        required: false
-      gitops-overlay-dir:
-        description: Path within gitops-repository holding kustomization.yaml of an overlay
-        type: string
-        default: kustomizations/overlays/release
-        required: false
 
       sentry-org:
         description: Sentry organization
@@ -42,8 +30,6 @@ on:
         type: string
         default: ${{ github.event.repository.name }}
 
-=======
->>>>>>> main
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -56,20 +42,10 @@ on:
         required: false
         description: A webhook url to post notifications about releases against
 
-<<<<<<< HEAD
-      gh-app-id:
-        description: Id of a Github App being used for triggering other workflows
-        required: true
-      gh-app-private-key:
-        description: Private key of a Github App being used for triggering other workflows
-        required: true
-
       sentry-auth-token:
         description: Sentry authentication token
         required: false
 
-=======
->>>>>>> main
 jobs:
   release-docker-image:
     runs-on: ubuntu-latest
