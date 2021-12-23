@@ -292,7 +292,7 @@ jobs:
           echo "::set-output name=is-pr-open::$isPrOpen"
 
   update-asana:
-    if: needs.validate-event.outputs.is-pr-open == 'true' || github.event_name == 'pull_request_review'
+    if: github.event_name == 'pull_request' && (needs.validate-event.outputs.is-pr-open == 'true' || github.event_name == 'pull_request_review')
 
     name: Update asana tasks
     runs-on: ubuntu-latest
