@@ -123,7 +123,6 @@ jobs:
     timeout-minutes: 20
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
-    if: env.SENTRY_AUTH_TOKEN != ''
     needs:
       - release-docker-image
     steps:
@@ -132,6 +131,7 @@ jobs:
           fetch-depth: 0
       - name: Create Sentry release
         uses: getsentry/action-release@v1
+        if: env.SENTRY_AUTH_TOKEN != ''
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
           SENTRY_ORG: ${{ inputs.sentry-org }}
