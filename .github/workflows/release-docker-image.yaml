@@ -20,6 +20,22 @@ on:
         required: false
         default: ${{ github.event.repository.name }}
 
+      sentry-org:
+        description: Sentry organization
+        required: false
+        type: string
+        default: neohelden
+      sentry-project:
+        description: Sentry project
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}
+      sentry-release-suffix:
+        description: Suffix to append to a release (like a run number etc..)
+        required: false
+        default: ""
+        type: string
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -31,6 +47,10 @@ on:
       slack-release-webhook-url:
         required: false
         description: A webhook url to post notifications about releases against
+
+      sentry-auth-token:
+        description: Sentry authentication token needs permission org:read,release:admin to work properly
+        required: false
 
 jobs:
   release-docker-image:
@@ -85,3 +105,27 @@ jobs:
                 }]
               }'            
           fi
+
+  # Creates a new release for the app. Additionally associates commits to the release.
+  # The sentry-auth-token needs permission org:read,release:admin to work properly.
+  associate-commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+    needs:
+      - release-docker-image
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        if: env.SENTRY_AUTH_TOKEN != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+          SENTRY_ORG: ${{ inputs.sentry-org }}
+          SENTRY_PROJECT: ${{ inputs.sentry-project }}
+          SENTRY_LOG_LEVEL: debug
+        with:
+          version: ${{ github.event.release.tag_name }}${{ inputs.sentry-release-suffix }}
