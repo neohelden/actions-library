@@ -83,10 +83,6 @@ on:
         description: Secret files passed to docker-build-push-action in yaml multiline format
         required: false
         default: ""
-      docker-push-build-secrets:
-        type: string
-        description: Secrets passed to docker-build-push action in yaml multiline format
-        required: false
       container-verify-cmd:
         type: string
         description: "Log entry which shows up if the container starts up successfully after build"
@@ -246,6 +242,9 @@ on:
       image-registry-token:
         description: Token use to login at the image registry
         required: true
+      docker-push-build-secrets:
+        description: Secrets passed to docker-build-push action in yaml multiline format
+        required: false
       sonar-token:
         required: true
         description: "Token used for pushing test results to SonarCloud.io"
@@ -415,7 +414,7 @@ jobs:
             sentry-org=${{ inputs.sentry-organization }}
             sentry-project=${{ inputs.sentry-project }}
             ${{ steps.dockerArgs.outputs.sentry-conditional-token }}
-            ${{ inputs.docker-push-build-secrets }}
+            ${{ secrets.docker-push-build-secrets }}
           docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
 
   ## cannot live in a Composite since that does not support Actions hosted in private registries
