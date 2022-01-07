@@ -20,6 +20,9 @@ inputs:
   repo-ssh-key:
     description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
     required: false
+  megalinter-flavor:
+    description: Flavor to use for megalint
+    required: false
 
 runs:
   using: "composite"
@@ -152,7 +155,7 @@ runs:
       id: ml
       # You can override MegaLinter flavor used to have faster performances
       # More info at https://megalinter.github.io/flavors/
-      uses: megalinter/megalinter@v5
+      uses: megalinter/megalinter${{ inputs.megalinter-flavor }}@v5
       env:
         # All available variables are described in documentation
         # https://megalinter.github.io/configuration/
@@ -160,6 +163,7 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         TYPESCRIPT_DEFAULT_STYLE: prettier
         DISABLE_ERRORS: "true"
+        SPELL_CSPELL_CONFIG_FILE: $GITHUB_ACTION_PATH/cspell.json
     - name: Archive mega linter artifacts
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v2
