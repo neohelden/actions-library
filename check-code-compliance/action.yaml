@@ -160,7 +160,7 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         TYPESCRIPT_DEFAULT_STYLE: prettier
         DISABLE_ERRORS: "true"
-        SPELL_CSPELL_CONFIG_FILE: $GITHUB_ACTION_PATH/cspell.json
+        SPELL_CSPELL_CONFIG_FILE: "${{ github.action_path }}/cspell.json"
     - name: Archive mega linter artifacts
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v2
