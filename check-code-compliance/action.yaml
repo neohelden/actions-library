@@ -148,6 +148,14 @@ runs:
         path: ./bom.xml
         retention-days: 30
 
+    - name: LS
+      shell: bash
+      run: |
+        sudo apt-get install -y tree 
+        tree /home/runner/work/_temp/_github_workflow
+        echo "======================================="
+        tree /home/runner/work/
+
     - name: MegaLinter
       id: ml
       # You can override MegaLinter flavor used to have faster performances
