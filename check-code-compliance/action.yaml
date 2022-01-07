@@ -160,3 +160,11 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         TYPESCRIPT_DEFAULT_STYLE: prettier
         DISABLE_ERRORS: "true"
+    - name: Archive mega linter artifacts
+      if: ${{ success() }} || ${{ failure() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: MegaLinter reports
+        path: |
+          report
+          mega-linter.log
