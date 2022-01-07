@@ -151,10 +151,7 @@ runs:
     - name: LS
       shell: bash
       run: |
-        sudo apt-get install -y tree 
-        tree /home/runner/work/_temp/_github_workflow
-        echo "======================================="
-        tree /home/runner/work/
+        cp "${{ github.action_path }}/cspell.json" ./.cspell.json
 
     - name: MegaLinter
       id: ml
@@ -168,7 +165,6 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         TYPESCRIPT_DEFAULT_STYLE: prettier
         DISABLE_ERRORS: "true"
-        SPELL_CSPELL_CONFIG_FILE: "${{ github.action_path }}/cspell.json"
     - name: Archive mega linter artifacts
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v2
