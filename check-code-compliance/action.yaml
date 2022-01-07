@@ -148,7 +148,6 @@ runs:
         path: ./bom.xml
         retention-days: 30
 
-
     - uses: streetsidesoftware/cspell-action@v1
       name: check spelling
       with:
