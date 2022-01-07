@@ -47,6 +47,7 @@ jobs:
   megalint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Copy spelling config
         shell: bash
         run: |
