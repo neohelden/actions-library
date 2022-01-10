@@ -52,6 +52,7 @@ jobs:
         shell: bash
         run: |
           cp "check-code-compliance/cspell.json" ./.cspell.json
+          cp "check-code-compliance/.yamllint.yml" ./.yamllint.yml
 
       - name: MegaLinter
         id: ml

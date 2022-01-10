@@ -1,0 +1,12 @@
+# loaded from https://github.com/megalinter/megalinter/tree/main/TEMPLATES
+extends: default
+rules:
+  new-lines:
+    level: warning
+    type: unix
+  line-length:
+    max: 500
+  truthy:
+    check-keys: false
+  document-start:
+    present: false

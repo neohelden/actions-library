@@ -152,6 +152,7 @@ runs:
       shell: bash
       run: |
         cp "${{ github.action_path }}/cspell.json" ./.cspell.json
+        cp "${{ github.action_path }}/.yamllint.yml" ./.yamllint.yml
 
     - name: MegaLinter
       id: ml
