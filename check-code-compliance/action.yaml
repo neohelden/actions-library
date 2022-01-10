@@ -83,7 +83,7 @@ runs:
             $MERGED_FILE
 
           echo "Using audit-ci config: $(cat $MERGED_FILE)"
-          
+
           npx audit-ci --high --config=$MERGED_FILE
 
           commitMiliseconds=$(git log --format="%at" -- $FILE)
