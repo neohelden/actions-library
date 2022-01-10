@@ -34,10 +34,10 @@ runs:
       uses: actions/github-script@v5
       env:
         PR_ADDITION: |
-          :tada: This PR is an App Deployment :tada: 
+          :tada: This PR is an App Deployment :tada:
           [![App Status](${{ inputs.argo-host }}/api/badge?name=${{ inputs.argo-app }}&revision=true)](${{ inputs.argo-host }}/applications/${{ inputs.argo-app }})
           View the app at: https://${{ inputs.app-prefix }}${{ inputs.argo-suffix }}.${{ inputs.workspaces-base-domain }}
-          The badge was added automatically. 
+          The badge was added automatically.
 
           ---
           Please do not edit above this line!
