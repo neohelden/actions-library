@@ -50,7 +50,7 @@ runs:
           cd config
           commitMiliseconds=$(git log --format="%at" -- audit-ci.json)
           sevenDaysInThePast=$(date --date '- 7days' +%s)
-          
+
           if [ "$(jq -r .allowlist $FILE)" != "null" ] && \
             [ "$(jq -r .allowlist $FILE)" != "[]" ] && \
             [[ $commitMiliseconds -lt $sevenDaysInThePast ]] && \
@@ -83,7 +83,7 @@ runs:
             $MERGED_FILE
 
           echo "Using audit-ci config: $(cat $MERGED_FILE)"
-          
+
           npx audit-ci --high --config=$MERGED_FILE
 
           commitMiliseconds=$(git log --format="%at" -- $FILE)
@@ -147,3 +147,30 @@ runs:
         name: BOM - ${{ inputs.artifact-name }}
         path: ./bom.xml
         retention-days: 30
+
+    - name: Copy spelling config
+      shell: bash
+      run: |
+        cp "${{ github.action_path }}/cspell.json" ./.cspell.json
+        cp "${{ github.action_path }}/.yamllint.yml" ./.yamllint.yml
+
+    - name: MegaLinter
+      id: ml
+      # You can override MegaLinter flavor used to have faster performances
+      # More info at https://megalinter.github.io/flavors/
+      uses: megalinter/megalinter/flavors/javascript@v5
+      env:
+        # All available variables are described in documentation
+        # https://megalinter.github.io/configuration/
+        VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == github.event.repository.default_branch }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
+        GITHUB_TOKEN: ${{ github.token }}
+        TYPESCRIPT_DEFAULT_STYLE: prettier
+        DISABLE_ERRORS: "true"
+    - name: Archive mega linter artifacts
+      if: ${{ success() }} || ${{ failure() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: MegaLinter reports
+        path: |
+          report
+          mega-linter.log
