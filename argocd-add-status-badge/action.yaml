@@ -54,6 +54,12 @@ runs:
           if (prBody == null) {
             prBody = ""
           }
+
+          if (prBody.includes(process.env.PR_ADDITION)){
+            console.warn("PR Body is already present. THIS SHOULD NOT HAPPEN!")
+            return 0;
+          }
+
           const newBody = process.env.PR_ADDITION + '\n' + prBody;
           github.rest.pulls.update({
             owner: context.repo.owner,
