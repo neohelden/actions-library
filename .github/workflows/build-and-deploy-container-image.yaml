@@ -224,6 +224,7 @@ on:
         type: string
         default: kustomizations/overlays/shared-dev
         required: false
+
       sentry-organization:
         default: neohelden
         description: The sentry organization
@@ -233,6 +234,11 @@ on:
         default: ${{ github.event.repository.name }}
         description: The project to associate this repo to
         required: false
+        type: string
+      sentry-release-suffix:
+        description: Suffix to append to a release (like a run number etc..)
+        required: false
+        default: ""
         type: string
 
     secrets:
@@ -416,6 +422,64 @@ jobs:
             ${{ steps.dockerArgs.outputs.sentry-conditional-token }}
             ${{ secrets.docker-push-build-secrets }}
           docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
+
+  # Creates a new release for the app. Additionally associates commits to the release.
+  # The sentry-auth-token needs permission org:read,release:admin to work properly.
+  associate-commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.ref == ${{ inputs.release-branch }} || github.ref == ${{ inputs.default-branch }}
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+    needs:
+      - build-docker-image
+    steps:
+      - name: Install semantic-release
+        shell: bash
+        run: |
+          sudo npm install -g \
+            semantic-release@18.0.0 \
+            @semantic-release/exec@6.0.1
+
+      - name: Extract branch name
+        shell: bash
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+        id: extract_branch
+
+      - name: get version of app
+        shell: bash
+        id: version
+        run: |
+          cat <<EOF > .releaserc.yaml
+          branches: ["${{ steps.extract_branch.outputs.short_ref }}"]
+          tagFormat: '\${version}'
+          dryRun: true
+          ci: true
+          debug: true
+          plugins:
+            - '@semantic-release/commit-analyzer'
+            - [
+                '@semantic-release/exec',
+                {
+                  'verifyReleaseCmd': "echo ::set-output name=version::\${nextRelease.version}",
+                },
+              ]
+          EOF
+
+          npx semantic-release --debug
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        if: env.SENTRY_AUTH_TOKEN != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+          SENTRY_ORG: ${{ inputs.sentry-organization }}
+          SENTRY_PROJECT: ${{ inputs.sentry-project }}
+          SENTRY_LOG_LEVEL: debug
+        with:
+          version: ${{ steps.version.outputs.version }}${{ inputs.sentry-release-suffix }}
 
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   deploy-pr:

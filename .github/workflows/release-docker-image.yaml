@@ -115,29 +115,7 @@ jobs:
               }'
           fi
 
-  # Creates a new release for the app. Additionally associates commits to the release.
-  # The sentry-auth-token needs permission org:read,release:admin to work properly.
-  associate-commits:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
-    needs:
-      - release-docker-image
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
-        if: env.SENTRY_AUTH_TOKEN != ''
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
-          SENTRY_ORG: ${{ inputs.sentry-org }}
-          SENTRY_PROJECT: ${{ inputs.sentry-project }}
-          SENTRY_LOG_LEVEL: debug
-        with:
-          version: ${{ github.event.release.tag_name }}${{ inputs.sentry-release-suffix }}
+
 
   update-notion:
     runs-on: ubuntu-latest
