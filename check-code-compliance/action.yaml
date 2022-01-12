@@ -155,6 +155,7 @@ runs:
         cp "${{ github.action_path }}/.yamllint.yml" ./.yamllint.yml
 
     - name: MegaLinter
+      if: github.event_name == 'pull_request'
       id: ml
       # You can override MegaLinter flavor used to have faster performances
       # More info at https://megalinter.github.io/flavors/
@@ -168,7 +169,7 @@ runs:
         JAVASCRIPT_DEFAULT_STYLE: prettier
         DISABLE_ERRORS: "true"
     - name: Archive mega linter artifacts
-      if: ${{ success() }} || ${{ failure() }}
+      if: (success() || failure()) && github.event_name == 'pull_request'
       uses: actions/upload-artifact@v2
       with:
         name: MegaLinter reports
