@@ -53,6 +53,14 @@ runs:
         wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/typescript.txt && gzip typescript.txt
         wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/cspell-ext.json
 
+    - name: Install bash dicts
+      shell: bash
+      working-directory: .cspell
+      run: |
+        mkdir bash && cd bash
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/bash/bash-words.txt && gzip bash-words.txt
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/bash/cspell-ext.json
+
     - name: MegaLinter
       if: github.event_name == 'pull_request'
       id: ml

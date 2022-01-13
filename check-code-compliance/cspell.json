@@ -14,7 +14,8 @@
   ],
   "import": [
     ".cspell/de_DE/cspell-ext.json",
-    ".cspell/typescript/cspell-ext.json"
+    ".cspell/typescript/cspell-ext.json",
+    ".cspell/bash/cspell-ext.json"
   ],
   "flagWords": []
 }
