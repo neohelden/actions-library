@@ -147,7 +147,6 @@ runs:
         name: BOM - ${{ inputs.artifact-name }}
         path: ./bom.xml
         retention-days: 30
-
 #    - name: Copy spelling config
 #      shell: bash
 #      run: |
