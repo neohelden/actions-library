@@ -42,16 +42,16 @@ runs:
       working-directory: .cspell
       run: |
         mkdir de_DE && cd de_DE
-        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/de_DE.trie.gz
-        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/cspell-ext.json
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/de_DE.trie.gz
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/cspell-ext.json
 
     - name: Install ts dicts
       shell: bash
       working-directory: .cspell
       run: |
         mkdir typescript && cd typescript
-        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/typescript.txt && gzip typescript.txt
-        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/cspell-ext.json
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/typescript.txt && gzip typescript.txt
+        wget -q https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/cspell-ext.json
 
     - name: MegaLinter
       if: github.event_name == 'pull_request'
