@@ -12,7 +12,11 @@
     "impex",
     "gitops",
     "asana",
-    "sbom"
+    "sbom",
+    "mkdir",
+    "megalint",
+    "neap",
+    "cyclonedx"
   ],
   "import": [
     "@cspell/dict-fullstack/cspell-ext.json",
