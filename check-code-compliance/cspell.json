@@ -12,6 +12,9 @@
     "impex",
     "gitops"
   ],
-  "import":[".cspell/de_DE/cspell-ext.json",".cspell/typescript/cspell-ext.json"],
+  "import": [
+    ".cspell/de_DE/cspell-ext.json",
+    ".cspell/typescript/cspell-ext.json"
+  ],
   "flagWords": []
 }
