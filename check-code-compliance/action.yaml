@@ -49,7 +49,7 @@ runs:
       shell: bash
       working-directory: .cspell
       run: |
-        mkdir de_DE && cd de_DE
+        mkdir typescript && typescript
         wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/typescript.txt && gzip typescript.txt
         wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/cspell-ext.json
 
