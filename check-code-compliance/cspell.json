@@ -10,12 +10,16 @@
     "visualstudio",
     "rasa",
     "impex",
-    "gitops"
+    "gitops",
+    "asana",
+    "sbom"
   ],
   "import": [
-    ".cspell/de_DE/cspell-ext.json",
-    ".cspell/typescript/cspell-ext.json",
-    ".cspell/bash/cspell-ext.json"
+    "@cspell/dict-fullstack/cspell-ext.json",
+    "@cspell/dict-de-de/cspell-ext.json",
+    "@cspell/dict-public-licenses/cspell-ext.json",
+    "@cspell/dict-typescript/cspell-ext.json",
+    "@cspell/dict-bash/cspell-ext.json"
   ],
   "flagWords": []
 }
