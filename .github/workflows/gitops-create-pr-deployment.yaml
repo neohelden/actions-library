@@ -27,7 +27,7 @@ on:
         description: Domain name of the workspaces base
         type: string
         required: false
-        default: "dev.clusters.neohelden.com"
+        default: "shared-dev.clusters.neohelden.com"
 
     secrets:
       image-registry-username:

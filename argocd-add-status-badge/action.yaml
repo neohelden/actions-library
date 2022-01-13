@@ -8,7 +8,7 @@ inputs:
   argo-host:
     description: ArgoCd host
     required: false
-    default: https://argocd.dev.clusters.neohelden.com
+    default: https://argocd.shared-dev.clusters.neohelden.com
   argo-app:
     description: ArgoCD app being used as base for deploying the built container image
     required: false
