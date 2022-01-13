@@ -48,29 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Copy spelling config
-        shell: bash
-        run: |
-          cp "check-code-compliance/cspell.json" ./.cspell.json
-          cp "check-code-compliance/.yamllint.yml" ./.yamllint.yml
-
-      - name: MegaLinter
-        id: ml
-        # You can override MegaLinter flavor used to have faster performances
-        # More info at https://megalinter.github.io/flavors/
-        uses: megalinter/megalinter/flavors/ci_light@v5
-        env:
-          # All available variables are described in documentation
-          # https://megalinter.github.io/configuration/
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == github.event.repository.default_branch }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
-          GITHUB_TOKEN: ${{ github.token }}
-          TYPESCRIPT_DEFAULT_STYLE: prettier
-          DISABLE_ERRORS: "true"
-      - name: Archive mega linter artifacts
-        if: ${{ success() }} || ${{ failure() }}
-        uses: actions/upload-artifact@v2
+      - uses: neohelden/actions-library/check-code-compliance@main
         with:
-          name: MegaLinter reports
-          path: |
-            report
-            mega-linter.log
+         
