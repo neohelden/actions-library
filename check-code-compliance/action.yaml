@@ -29,6 +29,53 @@ runs:
       with:
         ref: ${{ inputs.checkout-ref }}
 
+    - name: Copy spelling config
+      shell: bash
+      run: |
+        cp "${{ github.action_path }}/cspell.json" ./.cspell.json
+        cp "${{ github.action_path }}/.yamllint.yml" ./.yamllint.yml
+        
+        mkdir .cspell
+
+    - name: Install de-DE dicts
+      shell: bash 
+      working-directory: .cspell
+      run: |
+        mkdir de_DE && cd de_DE
+        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/de_DE.trie.gz
+        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/de_DE/cspell-ext.json
+
+    - name: Install ts dicts
+      shell: bash 
+      working-directory: .cspell
+      run: |
+        mkdir de_DE && cd de_DE
+        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/typescript.txt && gzip typescript.txt
+        wget https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/typescript/cspell-ext.json
+
+    - name: MegaLinter
+      if: github.event_name == 'pull_request'
+      id: ml
+      # You can override MegaLinter flavor used to have faster performances
+      # More info at https://megalinter.github.io/flavors/
+      uses: megalinter/megalinter/flavors/javascript@v5
+      env:
+        # All available variables are described in documentation
+        # https://megalinter.github.io/configuration/
+        VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == github.event.repository.default_branch }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
+        GITHUB_TOKEN: ${{ github.token }}
+        TYPESCRIPT_DEFAULT_STYLE: prettier
+        JAVASCRIPT_DEFAULT_STYLE: prettier
+        DISABLE_ERRORS: "true"
+    - name: Archive mega linter artifacts
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v2
+      with:
+        name: MegaLinter reports
+        path: |
+          report
+          mega-linter.log
+
     - name: Install dependencies
       run: yarn
       working-directory: ./
@@ -147,31 +194,3 @@ runs:
         name: BOM - ${{ inputs.artifact-name }}
         path: ./bom.xml
         retention-days: 30
-#    - name: Copy spelling config
-#      shell: bash
-#      run: |
-#        cp "${{ github.action_path }}/cspell.json" ./.cspell.json
-#        cp "${{ github.action_path }}/.yamllint.yml" ./.yamllint.yml
-#
-#    - name: MegaLinter
-#      if: github.event_name == 'pull_request'
-#      id: ml
-#      # You can override MegaLinter flavor used to have faster performances
-#      # More info at https://megalinter.github.io/flavors/
-#      uses: megalinter/megalinter/flavors/javascript@v5
-#      env:
-#        # All available variables are described in documentation
-#        # https://megalinter.github.io/configuration/
-#        VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == github.event.repository.default_branch }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
-#        GITHUB_TOKEN: ${{ github.token }}
-#        TYPESCRIPT_DEFAULT_STYLE: prettier
-#        JAVASCRIPT_DEFAULT_STYLE: prettier
-#        DISABLE_ERRORS: "true"
-#    - name: Archive mega linter artifacts
-#      if: (success() || failure()) && github.event_name == 'pull_request'
-#      uses: actions/upload-artifact@v2
-#      with:
-#        name: MegaLinter reports
-#        path: |
-#          report
-#          mega-linter.log
