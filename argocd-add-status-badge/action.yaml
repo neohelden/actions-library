@@ -16,7 +16,7 @@ inputs:
   workspaces-base-domain:
     description: Domain name of the workspaces base
     required: false
-    default: "dev.clusters.neohelden.com"
+    default: "shared-dev.clusters.neohelden.com"
   argo-suffix:
     description: Suffix for the ArgoCD app name
     required: false
