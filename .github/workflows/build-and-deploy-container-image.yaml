@@ -178,10 +178,6 @@ on:
         type: string
         description: Comma separated list of extra plugins to load for the sematic-release package
         required: false
-      npm-automation-token:
-        type: string
-        description: Automation token for NPM to publish packages
-        required: false
       release-labels:
         type: string
         description: A comma seperated list of labels to add to a release PR
@@ -268,6 +264,9 @@ on:
         required: false
       sentry-auth-token:
         description: A sentry token available at /sentry-auth in the docker build
+        required: false
+      npm-automation-token:
+        description: Automation token for NPM to publish packages
         required: false
 
 jobs:
@@ -495,7 +494,7 @@ jobs:
           release-branch: ${{ inputs.release-branch }}
           release-prefix: ${{ inputs.release-prefix }}
           release-extra-plugins: ${{ inputs.release-extra-plugins }}
-          npm-automation-token: ${{ inputs.npm-automation-token }}
+          npm-automation-token: ${{ secrets.npm-automation-token }}
           tsconfig-build-file: ${{ inputs.tsconfig-build-file }}
           dev-branch: ${{ inputs.default-branch }}
           release-labels: ${{ inputs.release-labels }}
