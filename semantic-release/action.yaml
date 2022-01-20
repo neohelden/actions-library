@@ -36,6 +36,10 @@ inputs:
     description: A comma seperated list of labels to add to a release PR
     default: release
     required: false
+  auto-merge-dependabot-enabled:
+    description: "If true, the PR will be merged from dependabot"
+    default: "false"
+    required: false
 
 runs:
   using: "composite"
@@ -152,3 +156,9 @@ runs:
         GIT_PR_RELEASE_MENTION: author
         GIT_PR_RELEASE_TEMPLATE: template.erb
         DEBUG: "true"
+
+    - name: "Automerge (enabled: ${{ inputs.auto-merge-dependabot-enabled }})"
+      uses: fastify/github-action-merge-dependabot@v3.0.0
+      if: ${{ inputs.auto-merge-dependabot-enabled }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
