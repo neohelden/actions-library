@@ -161,4 +161,4 @@ runs:
       uses: fastify/github-action-merge-dependabot@v3.0.0
       if: ${{ inputs.auto-merge-dependabot-enabled }}
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ steps.generate_token.outputs.token }}
