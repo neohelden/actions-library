@@ -277,7 +277,7 @@ on:
 
 permissions:
   actions: none
-  checks: none
+  checks: write
   contents: write
   deployments: none
   id-token: none
