@@ -388,6 +388,15 @@ jobs:
       - check-code-compliance
 
     steps:
+      - name: find dockerfile
+        id: build-this
+        run: |
+          if [ -f "${{ inputs.docker-file }}" ]; then
+            echo "::set-output name=build::true"
+          else
+            echo "::set-output name=build::false"
+          fi
+
       - name: Prepare build secrets
         id: dockerArgs
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
@@ -395,6 +404,7 @@ jobs:
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
       - uses: neohelden/actions-library/build-docker-image@main
+        if: ${{ steps.build-this.outputs.build }} == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
           image-registry-token: ${{ secrets.image-registry-token }}
