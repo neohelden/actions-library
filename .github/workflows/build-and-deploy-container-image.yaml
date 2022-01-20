@@ -231,6 +231,12 @@ on:
         required: false
         type: string
 
+      auto-merge-dependabot-enabled:
+        type: boolean
+        description: Enable auto-merge of dependabot PRs
+        required: false
+        default: false
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -498,3 +504,4 @@ jobs:
           tsconfig-build-file: ${{ inputs.tsconfig-build-file }}
           dev-branch: ${{ inputs.default-branch }}
           release-labels: ${{ inputs.release-labels }}
+          auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}
