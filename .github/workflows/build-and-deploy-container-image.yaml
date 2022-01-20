@@ -310,6 +310,7 @@ jobs:
             isPrOpen=false
           fi
           echo "::set-output name=is-pr-open::$isPrOpen"
+      - uses: actions/checkout@v2
       - name: find docker file
         id: find-docker-file
         run: |
