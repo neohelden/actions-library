@@ -162,3 +162,4 @@ runs:
       if: ${{ inputs.auto-merge-dependabot-enabled }}
       with:
         github-token: ${{ steps.generate_token.outputs.token }}
+        target: minor
