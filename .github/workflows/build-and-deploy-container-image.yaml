@@ -426,7 +426,7 @@ jobs:
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
       - uses: neohelden/actions-library/build-docker-image@main
-        if: ${{ needs.prepare.outputs.docker-file-exists }} == 'true'
+        if: needs.prepare.outputs.docker-file-exists == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
           image-registry-token: ${{ secrets.image-registry-token }}
