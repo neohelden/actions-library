@@ -275,6 +275,21 @@ on:
         description: Automation token for NPM to publish packages
         required: false
 
+permissions:
+  actions: none
+  checks: none
+  contents: write
+  deployments: none
+  id-token: none
+  issues: none
+  #discussions: none
+  packages: none
+  #pages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 jobs:
   validate-event:
     name: Validate Github Event
@@ -489,6 +504,7 @@ jobs:
     name: semantic-release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     needs:
       - build-docker-image
     steps:
