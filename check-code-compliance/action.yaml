@@ -153,6 +153,7 @@ runs:
               Public Domain; \
               WTFPL; \
               CC-BY-4.0; \
+              Unicode-DFS-2016; \
               VOL" \
             --excludePackages="${{ inputs.license-exclude-packages }}" \
             --excludePrivatePackages \
