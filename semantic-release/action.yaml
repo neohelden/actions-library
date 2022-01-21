@@ -62,6 +62,7 @@ runs:
 
         if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
         then
+          yarn --frozen-lockfile -D;
           npx tsc -p "$FILE"
         else
           echo "Project is private or $FILE does not exist - ignoring"
