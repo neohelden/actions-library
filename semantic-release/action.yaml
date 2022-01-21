@@ -53,6 +53,9 @@ runs:
       with:
         node-version: "14"
 
+    - run: sudo apt-get install -y jq
+      shell: bash
+
     - name: Build the Code
       run: |
         FILE=${{ inputs.tsconfig-build-file }}
