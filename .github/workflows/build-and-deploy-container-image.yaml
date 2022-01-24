@@ -288,7 +288,7 @@ permissions:
   pull-requests: write
   repository-projects: none
   security-events: none
-  statuses: none
+  statuses: write
 
 jobs:
   prepare:
