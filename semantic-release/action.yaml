@@ -163,7 +163,7 @@ runs:
 
     - name: "Automerge (enabled: ${{ inputs.auto-merge-dependabot-enabled }})"
       uses: fastify/github-action-merge-dependabot@v3.0.0
-      if: ${{ inputs.auto-merge-dependabot-enabled }}
+      if: inputs.auto-merge-dependabot-enabled == 'true'
       with:
         github-token: ${{ steps.generate_token.outputs.token }}
         target: minor
