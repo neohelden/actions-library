@@ -106,7 +106,7 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: ["${{ steps.extract_branch.outputs.short_ref }}"]
+        branches: ["${{ steps.extract_branch.outputs.short_ref }}","${{ github.event.repository.default_branch }}"]
         tagFormat: '\${version}'
         dryRun: true
         ci: true
