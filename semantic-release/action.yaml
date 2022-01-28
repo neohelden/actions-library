@@ -14,7 +14,7 @@ inputs:
   release-branch:
     description: Branch name where releases are built from
     required: false
-    default: main
+    default: main,'+([0-9])?(.{+([0-9]),x}).x'
   release-prefix:
     description: "A prefix for the created release version"
     required: false
