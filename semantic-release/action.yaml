@@ -15,6 +15,10 @@ inputs:
     description: Branch name where releases are built from
     required: false
     default: main,'+([0-9])?(.{+([0-9]),x}).x'
+  main-branch:
+    description: Branch name where the main code is checked out from
+    required: false
+    default: main
   release-prefix:
     description: "A prefix for the created release version"
     required: false
@@ -153,7 +157,7 @@ runs:
           git-pr-release --no-fetch --squashed
         fi
       env:
-        GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.release-branch }}
+        GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.main-branch }}
         GIT_PR_RELEASE_BRANCH_STAGING: ${{ inputs.dev-branch }}
         GIT_PR_RELEASE_TOKEN: ${{ steps.generate_token.outputs.token }}
         GIT_PR_RELEASE_LABELS: ${{ inputs.release-labels }}
