@@ -172,7 +172,7 @@ runs:
             return 'true'
           }
           return 'false';
-      
+
     - name: Annotate Code Linting Results
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true' && github.event_name == 'pull_request' && steps.check_files_changed.result == 'true'
       uses: ataylorme/eslint-annotate-action@1.2.0
