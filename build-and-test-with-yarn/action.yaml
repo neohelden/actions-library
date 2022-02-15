@@ -156,8 +156,25 @@ runs:
       shell: bash
       run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
 
+    - name: Have files changed?
+      id: check_files_changed
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const pr = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          const files = pr.data.changed_files;
+          if (files.length > 0) {
+            return 'true'
+          }
+          return 'false';
+
     - name: Annotate Code Linting Results
-      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true' && github.event_name == 'pull_request'
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true' && github.event_name == 'pull_request' && steps.check_files_changed.result == 'true'
       uses: ataylorme/eslint-annotate-action@1.2.0
       with:
         repo-token: "${{ inputs.github-token }}"
