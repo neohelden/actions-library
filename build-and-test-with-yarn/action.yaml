@@ -161,6 +161,10 @@ runs:
       uses: actions/github-script@v6
       with:
         script: |
+          if ( !context.issue || !context.issue.number ){
+            console.log("Push event supressed");
+            return 'true';
+          }
           const pr = await github.rest.pulls.get({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -169,7 +173,7 @@ runs:
 
           const files = pr.data.changed_files;
           if (files.length > 0) {
-            return 'true'
+            return 'true';
           }
           return 'false';
 
