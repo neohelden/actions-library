@@ -1,16 +1,27 @@
 name: "semantic-release"
 description: "Creates a Semantic Release"
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   gh-app-id:
     description: Id of a Github App used to trigger follow-up Github Action workflows
     required: true
-  gh-app-priv-key:
+  gh-app-private-key:
     description: Private key of a Github App used to trigger follow-up Github Action workflows
     required: true
   release-branch:
     description: Branch name where releases are built from
     required: false
+    default: main,'+([0-9])?(.{+([0-9]),x}).x'
+  main-branch:
+    description: Branch name where the main code is checked out from
+    required: false
     default: main
+  release-prefix:
+    description: "A prefix for the created release version"
+    required: false
   release-extra-plugins:
     description: Comma separated list of extra plugins to load for the sematic-release package
     required: false
@@ -21,6 +32,18 @@ inputs:
     description: tsconfig file used for building the project.
     default: tsconfig.build.json
     required: false
+  dev-branch:
+    description: The staging branch in this project.
+    default: ${{ github.event.repository.default_branch }}
+    required: false
+  release-labels:
+    description: A comma seperated list of labels to add to a release PR
+    default: release
+    required: false
+  auto-merge-dependabot-enabled:
+    description: "If true, the PR will be merged from dependabot"
+    default: "false"
+    required: false
 
 runs:
   using: "composite"
@@ -28,10 +51,14 @@ runs:
     - uses: actions/checkout@v2.3.4
       with:
         fetch-depth: 0
+        ref: ${{ inputs.checkout-ref }}
 
     - uses: actions/setup-node@v2.4.0
       with:
         node-version: "14"
+
+    - run: sudo apt-get install -y jq
+      shell: bash
 
     - name: Build the Code
       run: |
@@ -39,6 +66,7 @@ runs:
 
         if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
         then
+          yarn --frozen-lockfile -D;
           npx tsc -p "$FILE"
         else
           echo "Project is private or $FILE does not exist - ignoring"
@@ -53,7 +81,8 @@ runs:
           semantic-release@18.0.0 \
           @semantic-release/git@10.0.0 \
           @semantic-release/release-notes-generator@10.0.2 \
-          @semantic-release/github@8.0.0
+          @semantic-release/github@8.0.0 \
+          @semantic-release/exec@6.0.1
 
     - name: Install ${{ inputs.extra-plugins }}
       shell: bash
@@ -69,22 +98,76 @@ runs:
       uses: tibdex/github-app-token@v1.4.0
       with:
         app_id: ${{ inputs.gh-app-id }}
-        private_key: ${{ inputs.gh-app-priv-key }}
+        private_key: ${{ inputs.gh-app-private-key }}
 
-    - shell: bash
+    - name: Create semantic release
+      shell: bash
       run: |
         IFS=,
         EXTRA_PLUGINS=(${{ inputs.release-extra-plugins }})
         PLUGINS=""
         for PLUGIN in ${EXTRA_PLUGINS[@]}; do
-          PLUGINS=",$PLUGIN";
+          PLUGINS="$PLUGINS,$PLUGIN";
         done
         semantic-release \
           --branches ${{ inputs.release-branch }} \
           --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-          --tag-format \${version} \
+          --tag-format ${{ inputs.release-prefix }}\${version} \
           --debug true
       env:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         NPM_TOKEN: ${{ inputs.npm-automation-token }}
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.6 # Not needed with a .ruby-version file
+        bundler-cache: true
+
+    - name: Create PR for next release
+      shell: bash
+      run: |
+        cat <<EOF > .releaserc.yaml
+        branches: ["${GITHUB_REF#refs/*/}","${{ github.event.repository.default_branch }}"]
+        tagFormat: '${{ inputs.release-prefix }}\${version}'
+        dryRun: true
+        ci: true
+        debug: true
+        plugins:
+          - '@semantic-release/commit-analyzer'
+          - [
+              '@semantic-release/exec',
+              {
+                'verifyReleaseCmd': "echo \${nextRelease.version} > version.txt",
+              },
+            ]
+        EOF
+
+        npx semantic-release --debug
+
+        cat <<EOF > template.erb
+        Release $(cat version.txt)
+        <% pull_requests.each do |pr| -%>
+        <%=  pr.to_checklist_item %>
+        <% end -%>
+        EOF
+
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ ! "${{ inputs.dev-branch }}" = "${{ inputs.release-branch }}" ]; then
+          gem install --no-document git-pr-release
+          git-pr-release --no-fetch --squashed
+        fi
+      env:
+        GIT_PR_RELEASE_BRANCH_PRODUCTION: ${{ inputs.main-branch }}
+        GIT_PR_RELEASE_BRANCH_STAGING: ${{ inputs.dev-branch }}
+        GIT_PR_RELEASE_TOKEN: ${{ steps.generate_token.outputs.token }}
+        GIT_PR_RELEASE_LABELS: ${{ inputs.release-labels }}
+        GIT_PR_RELEASE_MENTION: author
+        GIT_PR_RELEASE_TEMPLATE: template.erb
+        DEBUG: "true"
+
+    - name: "Automerge (enabled: ${{ inputs.auto-merge-dependabot-enabled }})"
+      uses: fastify/github-action-merge-dependabot@v3.0.0
+      if: inputs.auto-merge-dependabot-enabled == 'true'
+      with:
+        github-token: ${{ steps.generate_token.outputs.token }}
+        target: minor

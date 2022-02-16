@@ -1,0 +1,154 @@
+# This workflow tags the already built containers with the release tag
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      image-registry:
+        type: string
+        description: Container registry where to push container images too
+        required: false
+        default: registry.neohelden.com
+      registry-org:
+        type: string
+        description: Organization within the image registry where to push container images too
+        required: false
+        default: neohelden
+      image-name:
+        type: string
+        description: Name of the Docker image.
+        required: false
+        default: ${{ github.event.repository.name }}
+      notion-release-database:
+        type: string
+        description: DB Id within Notion.com where releases are published to
+        default: 4d94198fb863425f90952d8e9b71417c
+        required: false
+
+      sentry-org:
+        description: Sentry organization
+        required: false
+        type: string
+        default: neohelden
+      sentry-project:
+        description: Sentry project
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}
+      sentry-release-suffix:
+        description: Suffix to append to a release (like a run number etc..)
+        required: false
+        default: ""
+        type: string
+
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+
+      slack-release-webhook-url:
+        required: false
+        description: A webhook url to post notifications about releases against
+
+      sentry-auth-token:
+        description: Sentry authentication token needs permission org:read,release:admin to work properly
+        required: false
+
+      notion-token:
+        required: false
+        description: Token for accessing Notion.com
+
+jobs:
+  release-docker-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: docker/login-action@v1
+        with:
+          registry: ${{ inputs.image-registry }}
+          username: ${{ secrets.image-registry-username }}
+          password: ${{ secrets.image-registry-token }}
+
+      - shell: bash
+        run: docker pull ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
+
+      - shell: bash
+        run: |
+          docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+          docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+          docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+          docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+      - uses: LoveToKnow/slackify-markdown-action@v1.0.0
+        id: slackify
+        with:
+          text: ${{ github.event.release.body }}
+
+      - name: Notify release via Slack
+        shell: bash
+        run: |
+          if [ ! "${{ secrets.slack-release-webhook-url }}" = "" ]; then
+            curl --request POST \
+              --url ${{ secrets.slack-release-webhook-url }} \
+              --data-urlencode 'payload= {
+                "username": "GhostRider",
+                "icon_emoji": ":ghost:",
+                "blocks": [{
+                  "type":"header",
+                  "text": {
+                    "type":"plain_text",
+                    "text":"New Release of ${{ github.event.repository.name }}"
+                  }
+                },
+                {
+                  "type":"section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \n\n *Notes*: \n\n ${{ steps.slackify.outputs.text }}"
+                  }
+                }]
+              }'
+          fi
+
+  # Creates a new release for the app. Additionally associates commits to the release.
+  # The sentry-auth-token needs permission org:read,release:admin to work properly.
+  associate-commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+    needs:
+      - release-docker-image
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        if: env.SENTRY_AUTH_TOKEN != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-auth-token }}
+          SENTRY_ORG: ${{ inputs.sentry-org }}
+          SENTRY_PROJECT: ${{ inputs.sentry-project }}
+          SENTRY_LOG_LEVEL: debug
+        with:
+          version: ${{ github.event.release.tag_name }}${{ inputs.sentry-release-suffix }}
+
+  update-notion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Notion release notes
+        uses: infinitaslearning/notion-release-notes@3d59d126c0e83a1f93a0401f7c0a195e108e0539
+        with:
+          token: ${{ secrets.notion-token }}
+          database: ${{ inputs.notion-release-database }}
+          name: ${{ github.event.release.tag_name }}
+          tags: ${{ inputs.registry-org }}/${{ inputs.image-name }}
+          body: ${{ github.event.release.body }}

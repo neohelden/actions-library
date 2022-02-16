@@ -9,7 +9,7 @@ inputs:
     description: Username used to login at the image registry
     required: true
   image-registry-token:
-    description: TOken use to login at the image registry
+    description: Token use to login at the image registry
     required: true
   registry-org:
     description: Organization within the image registry where to push container images too
@@ -19,6 +19,9 @@ inputs:
     description: Name of the Docker image.
     required: false
     default: ${{ github.event.repository.name }}
+  release-hook:
+    description: A webhook url to post notifications about releases against
+    required: false
 
 runs:
   using: "composite"
@@ -30,13 +33,24 @@ runs:
         password: ${{ inputs.image-registry-token }}
 
     - shell: bash
-      run: |
-        cat <<EOF > Dockerfile
-        FROM ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
-        EOF
+      run: docker pull ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }}
 
-    - uses: docker/build-push-action@v2
+    - shell: bash
+      run: |
+        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker tag ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.sha }} ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
+        docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
+
+    - uses: LoveToKnow/slackify-markdown-action@v1.0.0
+      id: slackify
       with:
-        context: .
-        tags: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
-        push: true
+        text: ${{ github.event.release.body }}
+
+    - name: Notify release via Slack
+      shell: bash
+      run: |
+        if [ ! "${{ inputs.release-hook }}" = "" ]; then
+          curl -X POST --data-urlencode "payload={\"username\":\"GhostRider\",\"icon_emoji\":\":ghost:\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"New Release of ${{ github.event.repository.name }}\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Version*: <${{ github.event.release.html_url }} | ${{ github.event.release.tag_name }}> \\n\\n *Notes*: \\n ${{ steps.slackify.outputs.text }}\"}}]}" ${{ inputs.release-hook }}
+        fi

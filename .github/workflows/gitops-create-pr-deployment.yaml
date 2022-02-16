@@ -1,0 +1,196 @@
+name: "Create PR Deployment"
+on:
+  workflow_call:
+    inputs:
+      argo-host:
+        description: ArgoCd host
+        required: true
+        type: string
+      argo-base-app:
+        description: ArgoCD app being used as base for deploying the built container image
+        required: true
+        type: string
+      dev-gitops-base-branch:
+        description: Branch within a gitops repositoriy used by ArgoCD
+        required: false
+        default: main
+        type: string
+      argocd-overlay-path:
+        description: Path within the repository holding the kustomization.yaml of an overlay
+        required: true
+        type: string
+      k8s-version:
+        description: Version of Kubernetes against which kube-score shall check
+        type: string
+        required: true
+      workspaces-base-domain:
+        description: Domain name of the workspaces base
+        type: string
+        required: false
+        default: "shared-dev.clusters.neohelden.com"
+
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+      argocd-auth-token:
+        description: Token for authenticating on ArgoCD host
+        required: true
+      github-token:
+        description: Token used for accessing GitHub.com
+        required: true
+      private-key-robot-account:
+        description: Private Key of a robot account for creating a token to access private repositories referenced within kustomization files
+        required: true
+
+env:
+  ARGOCD_STATUS: "ArgoCD PR-Deployment"
+  DEPLOYMENT_STATUS: "NEAP Workspace"
+
+jobs:
+  kustomization-check:
+    name: "Check kustomization"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: neohelden/actions-library/kustomize-check@main
+        with:
+          argocd-overlay-path: ${{ inputs.argocd-overlay-path }}
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
+          k8s-version: ${{ inputs.k8s-version }}
+
+  kustomize-diff:
+    needs:
+      - kustomization-check
+    name: "kustomize diff"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: neohelden/actions-library/kustomize-diff@main
+        with:
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
+
+  deploy:
+    if: contains(github.event.pull_request.labels.*.name, 'deploy')
+    needs:
+      - kustomization-check
+
+    name: Deploy PR
+    runs-on: ubuntu-latest
+
+    env:
+      ARGOCD_USERNAME: ""
+      ARGOCD_PASSWORD: ""
+      ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
+
+    container:
+      image: registry.neohelden.com/internal/argocd-action:1.1.0
+      credentials:
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+
+    steps:
+      - name: "Create PR App"
+        run: |
+          /argocd create --update \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            -b "${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" \
+            -pr ${{ github.event.number }}
+                   
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "pending",
+              "context": "${{ env.ARGOCD_STATUS }}",
+              "description": "${{ inputs.argo-base-app }}-pr-${{ github.event.number }} available in Argocd UI -->",
+              "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}-pr-${{ github.event.number }}"
+              }' \
+            --fail
+
+      - name: Wait-for-healthy"
+        timeout-minutes: 15
+        run: |
+          /argocd wait-for-healthy \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            -pr ${{ github.event.number }}
+
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "pending",
+              "context": "${{ env.ARGOCD_STATUS }}",
+              "description": "${{ inputs.argo-base-app }}-pr-${{ github.event.number }} became healthy...",
+              "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}-pr-${{ github.event.number }}"
+              }' \
+            --fail
+
+      - name: Wait-for-sync"
+        timeout-minutes: 5
+        run: |
+          /argocd wait-for-in-sync \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            -pr ${{ github.event.number }} \
+            -sha ${{ github.event.pull_request.head.sha }}
+
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "success",
+              "context": "${{ env.ARGOCD_STATUS }}",
+              "description": "Deployment of ${{ inputs.argo-base-app }}-pr-${{ github.event.number }} succeeced.",
+              "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}-pr-${{ github.event.number }}"
+              }' \
+            --fail
+
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "success",
+              "context": "${{ env.DEPLOYMENT_STATUS }}",
+              "description": "Deployment of workspace succeeced.",
+              "target_url": "https://server-pr-${{ github.event.number }}.${{ inputs.workspaces-base-domain }}"
+              }' \
+            --fail
+
+  finally:
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    needs: deploy
+    steps:
+      - name: set status failure
+        run: |
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.github-token }}' \
+            --header 'content-type: application/json' \
+            --header 'accept: application/vnd.github.v3+json' \
+            --data '{
+              "state": "failure",
+              "context": "${{ env.ARGOCD_STATUS }}",
+              "description": "Deployment of ${{ inputs.argo-base-app }}-pr-${{ github.event.number }} failed!",
+              "target_url": "${{ inputs.argo-host }}/applications/${{ inputs.argo-base-app }}-pr-${{ github.event.number }}"
+              }' \
+            --fail

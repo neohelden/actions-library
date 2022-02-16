@@ -2,23 +2,31 @@ name: Build and Test
 description: Builds and tests code using yarn
 
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   sonar-token:
     description: "Token used for pushing test results to SonarCloud.io"
     required: true
   github-token:
-    description: "Token used for accessing GitHub.com"
+    description: Token used for accessing GitHub.com
     required: true
   sonar-project-base-dir:
     description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
     default: ./
     required: false
   sonar-organization:
-    description: The key of the organization to which the project belongs.
+    description: The key of the organization to which the project belongs to
     default: neohelden
     required: false
   sonar-projectKey:
     description: The project's unique key. Allowed characters are letters, numbers, -, _, . and :, with at least one non-digit.
     default: ${{ github.event.repository.name }}
+    required: false
+  sonar-branch-name:
+    description: Branch name to by analyzed. Must be empty for PR builds.
+    default: ${{ github.event.ref }}
     required: false
   sonar-sources:
     description: Comma-separated paths to directories containing main source files.
@@ -42,6 +50,10 @@ inputs:
     required: false
   sonar-test-exclusions:
     description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+    default: ""
+    required: false
+  sonar-coverage-exclusions:
+    description: Comma delimited path matching patterns defining files to be excluded from coverage reporting.
     default: ""
     required: false
   sonar-lcov-reportpaths:
@@ -77,24 +89,41 @@ runs:
   using: "composite"
 
   steps:
-    - uses: actions/checkout@v2
+    - name: Branch name
+      id: extract_branch
+      run: |
+        BRANCH_NAME=${{ inputs.sonar-branch-name }}
+
+        if [ -n "$BRANCH_NAME" ]
+        then
+          echo "##[set-output name=branch;]-Dsonar.branch.name=$(echo ${BRANCH_NAME#refs/heads/})"
+        else
+          echo "##[set-output name=branch;]"
+        fi
+      shell: bash
+
+    - name: Checkout
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0 ## fix shallow clone detected by SonarCloud.io
+        ref: ${{ inputs.checkout-ref }}
 
     - name: Resolve yarn dependencies
+      id: yarn-deps
       run: |
         FILE=yarn.lock
         if [ -f "$FILE" ]
         then
           yarn --frozen-lockfile 
         else
-          echo "$FILE does not exist - exiting"
-          exit 1
+          echo "$FILE does not exist - ignoring"
+          echo "::set-output name=no-yarn::true"
         fi
       working-directory: ./
       shell: bash
 
     - name: Prettier
+      if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
         if [ $(jq -r .devDependencies.prettier package.json) = "null" ] && exit
         then
@@ -105,17 +134,55 @@ runs:
       working-directory: ./
       shell: bash
 
-    - name: ESLint
+    - name: Test for ESLint
+      id: checkEsLint
       run: |
         FILE=${{ inputs.eslint-configuration-file }}
         if [ -f "$FILE" ]
         then
-          npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
-        else
-          echo "'${{ inputs.eslint-configuration-file }}' does not exist - ignoring"
+          echo "::set-output name=runEslint::true"
         fi
       working-directory: ./
       shell: bash
+
+    - name: ESlint
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
+      shell: bash
+      run: |
+        npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
+
+    - name: ESlint Annotate
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
+      shell: bash
+      run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
+
+    - name: Have files changed?
+      id: check_files_changed
+      uses: actions/github-script@v6
+      with:
+        script: |
+          if ( !context.issue || !context.issue.number ){
+            console.log("Push event supressed");
+            return 'true';
+          }
+          const pr = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          const files = pr.data.changed_files;
+          if (files.length > 0) {
+            return 'true';
+          }
+          return 'false';
+
+    - name: Annotate Code Linting Results
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true' && github.event_name == 'pull_request' && steps.check_files_changed.result == 'true'
+      uses: ataylorme/eslint-annotate-action@1.2.0
+      with:
+        repo-token: "${{ inputs.github-token }}"
+        report-json: "eslint_report.json"
 
     - name: Build
       run: |
@@ -131,17 +198,21 @@ runs:
       shell: bash
 
     - name: Test
+      id: test
+      if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
         if [ $(jq -r .devDependencies.jest package.json) = "null" ] && exit
         then
           echo "'jest' is not configured for this project - ignoring"
         else
-          npx jest --ci --coverage
+          npx jest --ci --coverage --detectOpenHandles
+          echo "::set-output name=coverageExists::true"
         fi
       working-directory: ./
       shell: bash
 
     - name: Prepare SonarCloud
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       run: |
         curl --include \
           --request POST \
@@ -159,12 +230,14 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
         args: >
           -Dsonar.organization=${{ inputs.sonar-organization }}
           -Dsonar.projectKey=neohelden-${{ inputs.sonar-projectKey }}
+          ${{ steps.extract_branch.outputs.branch }}
           -Dsonar.javascript.lcov.reportPaths=${{ inputs.sonar-lcov-reportpaths }}
           -Dsonar.sources=${{ inputs.sonar-sources }}
           -Dsonar.inclusions=${{ inputs.sonar-inclusions }}
@@ -172,6 +245,7 @@ runs:
           -Dsonar.tests=${{ inputs.sonar-tests }}
           -Dsonar.test.exclusions=${{ inputs.sonar-test-exclusions }}
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
+          -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}

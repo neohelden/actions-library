@@ -1,0 +1,23 @@
+version: 2
+
+registries:
+  docker-registry-harbor:
+    type: docker-registry
+    url: https://registry.neohelden.com
+    username: ${{secrets.HARBOR_USERNAME}}
+    password: ${{secrets.HARBOR_USERNAME}}
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "02:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
+    registries:
+      - docker-registry-harbor

@@ -1,0 +1,535 @@
+name: Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        type: string
+        description: Name of the artifact. Default is derived from the repo name.
+        required: false
+        default: ${{ github.event.repository.name }}
+      license-exclude-packages:
+        type: string
+        description: Semicolon separated list of packages to exclude from the license check
+        required: false
+      audit-ci-config:
+        type: string
+        description: Path to JSON config file used for configuring audit-ci (e.g. for allowing certain CVEs)
+        default: "audit-ci.json"
+        required: false
+      tsconfig-build-file:
+        type: string
+        description: tsconfig file used for building the project.
+        default: tsconfig.build.json
+        required: false
+      prettier-source-paths:
+        type: string
+        description: Comma separated list of paths/patterns used by prettier to check
+        default: src/**/*.ts
+        required: false
+      eslint-ext-patterns:
+        type: string
+        description: Comma separated list of file patterns eslint will check
+        default: js,jsx,ts,tsx
+        required: false
+      eslint-configuration-file:
+        type: string
+        description: Configuration file used by 'eslint'
+        default: .eslintrc
+        required: false
+
+      image-registry:
+        description: Host name of the image registry where build container images are pushed to
+        required: false
+        default: registry.neohelden.com
+        type: string
+      registry-org:
+        description: Organization/project within the image registry
+        required: false
+        default: neohelden
+        type: string
+      image-name:
+        description: name of the image being built
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      image-tag:
+        type: string
+        description: Tag of the container image
+        required: false
+        default: ${{ github.event.pull_request.head.sha || github.sha }}
+      docker-file:
+        type: string
+        description: Full path to the Dockerfile
+        required: false
+        default: ./Dockerfile
+      docker-context:
+        type: string
+        description: Context used to build the Docker image
+        required: false
+        default: ./
+      platforms:
+        type: string
+        description: Comma-separated list of platforms the Docker image gets built for
+        required: false
+        default: linux/amd64
+      docker-push-build-args:
+        type: string
+        description: Build Args used when building the Docker image
+        required: false
+        default: ""
+      docker-push-build-secret-files:
+        type: string
+        description: Secret files passed to docker-build-push-action in yaml multiline format
+        required: false
+        default: ""
+      container-verify-cmd:
+        type: string
+        description: "Log entry which shows up if the container starts up successfully after build"
+        required: true
+
+      checkout-ref:
+        type: string
+        description: Ref to checkout from Git
+        default: ${{ github.event.pull_request.head.sha }}
+        required: false
+
+      sonar-project-base-dir:
+        type: string
+        description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
+        default: ./
+        required: false
+      sonar-organization:
+        type: string
+        description: The key of the organization to which the project belongs to
+        default: neohelden
+        required: false
+      sonar-projectKey:
+        type: string
+        description: The project's unique key. Allowed characters are letters, numbers, -, _, . and :, with at least one non-digit.
+        default: ${{ github.event.repository.name }}
+        required: false
+      sonar-branch-name:
+        type: string
+        description: Branch name to by analyzed. Must be empty for PR builds.
+        default: ${{ github.event.ref }}
+        required: false
+      sonar-sources:
+        type: string
+        description: Comma-separated paths to directories containing main source files.
+        default: src/
+        required: false
+      sonar-inclusions:
+        type: string
+        description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.sources`.
+        default: "**/*.ts"
+        required: false
+      sonar-exclusions:
+        type: string
+        description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
+        default: "**/*.test.ts"
+        required: false
+      sonar-tests:
+        type: string
+        description: Holds a comma-delimited list of directories (not a path matching pattern) relative to the current working directory.
+        default: src/
+        required: false
+      sonar-test-inclusions:
+        type: string
+        description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
+        default: "**/*.test.ts"
+        required: false
+      sonar-test-exclusions:
+        type: string
+        description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+        default: ""
+        required: false
+      sonar-coverage-exclusions:
+        type: string
+        description: Comma delimited path matching patterns defining files to be excluded from coverage reporting.
+        default: ""
+        required: false
+      sonar-lcov-reportpaths:
+        type: string
+        description: Comma-delimited list of paths to LCOV coverage report files. Paths may be absolute or relative to the project root.
+        default: coverage/lcov.info
+        required: false
+      sonar-verbose:
+        type: boolean
+        description: Debug output for Sonar Scan
+        default: false
+        required: false
+      default-branch:
+        type: string
+        description: Default development branch of this repository
+        default: ${{ github.event.repository.default_branch }}
+        required: false
+
+      release-branch:
+        type: string
+        description: Branch used for releases
+        default: main
+        required: false
+      release-prefix:
+        type: string
+        description: "A prefix for the created release version"
+        required: false
+      release-extra-plugins:
+        type: string
+        description: Comma separated list of extra plugins to load for the sematic-release package
+        required: false
+      release-labels:
+        type: string
+        description: A comma seperated list of labels to add to a release PR
+        default: release
+        required: false
+
+      argo-host:
+        description: ArgoCd host
+        required: false
+        default: https://argocd.shared-dev.clusters.neohelden.com
+        type: string
+      argo-base-app:
+        description: ArgoCD app being used as base for deploying the built container image
+        required: false
+        default: neap-develop
+        type: string
+      dev-gitops-base-branch:
+        description: Branch within a gitops repositoriy used by ArgoCD
+        required: false
+        default: main
+        type: string
+      workspaces-base-domain:
+        description: Domain name of the workspaces base
+        type: string
+        required: false
+        default: "shared-dev.clusters.neohelden.com"
+
+      maximize-build-space:
+        type: boolean
+        description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software.
+        required: false
+        default: false
+
+      gitops-repository:
+        description: gitops repository name with owner
+        type: string
+        required: false
+      gitops-overlay-dir:
+        description: Path within gitops-repository holding kustomization.yaml of an overlay
+        type: string
+        default: kustomizations/overlays/shared-dev
+        required: false
+      sentry-organization:
+        default: neohelden
+        description: The sentry organization
+        required: false
+        type: string
+      sentry-project:
+        default: ${{ github.event.repository.name }}
+        description: The project to associate this repo to
+        required: false
+        type: string
+
+      auto-merge-dependabot-enabled:
+        type: boolean
+        description: Enable auto-merge of dependabot PRs
+        required: false
+        default: false
+
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+      docker-push-build-secrets:
+        description: Secrets passed to docker-build-push action in yaml multiline format
+        required: false
+      sonar-token:
+        required: true
+        description: "Token used for pushing test results to SonarCloud.io"
+      global-audit-ci-repo-key:
+        description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
+        required: true
+      argocd-auth-token:
+        description: Token for authenticating on ArgoCD host
+        required: true
+      gh-app-id:
+        description: Id of a Github App being used for triggering other workflows
+        required: true
+      gh-app-private-key:
+        description: Private key of a Github App being used for triggering other workflows
+        required: true
+      github-token:
+        description: Token used for accessing GitHub.com
+        required: true
+      asana-github-api-token:
+        description: Token used for asana github api access
+        required: false
+      sentry-auth-token:
+        description: A sentry token available at /sentry-auth in the docker build
+        required: false
+      npm-automation-token:
+        description: Automation token for NPM to publish packages
+        required: false
+
+permissions:
+  actions: none
+  checks: write
+  contents: write
+  deployments: none
+  id-token: none
+  issues: none
+  #discussions: none
+  packages: none
+  #pages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: none
+  statuses: write
+
+jobs:
+  prepare:
+    name: Validate Github Event & context
+    runs-on: ubuntu-latest
+
+    outputs:
+      is-pr-open: ${{ steps.check-event.outputs.is-pr-open }}
+      docker-file-exists: ${{ steps.find-docker-file.outputs.docker-file-exists }}
+
+    steps:
+      - name: check-event
+        id: check-event
+        run: |
+          isPrOpen=true
+
+          if [ "${{ github.event_name }}" == "pull_request" ] && \
+           [ "${{ github.event.pull_request.state }}" == "closed" ]; then
+            isPrOpen=false
+          fi
+          echo "::set-output name=is-pr-open::$isPrOpen"
+      - uses: actions/checkout@v2
+      - name: find docker file
+        id: find-docker-file
+        run: |
+          if [ -f "${{ inputs.docker-file }}" ]; then
+            echo "::set-output name=docker-file-exists::true"
+          else
+            echo "::set-output name=docker-file-exists::false"
+          fi
+
+  update-asana:
+    if: github.event_name == 'pull_request' && (needs.prepare.outputs.is-pr-open == 'true' || github.event_name == 'pull_request_review')
+
+    name: Update asana tasks
+    runs-on: ubuntu-latest
+
+    needs:
+      - prepare
+
+    steps:
+      - name: Update asana tasks
+        uses: neohelden/actions-library/attach-asana-task@main
+        with:
+          asana-secret: ${{ secrets.asana-github-api-token }}
+
+  build-and-test:
+    if: needs.prepare.outputs.is-pr-open == 'true'
+
+    name: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    needs:
+      - prepare
+
+    services:
+      npq:
+        image: registry.neohelden.com/neohelden/nats:latest
+        credentials:
+          username: ${{ secrets.image-registry-username }}
+          password: ${{ secrets.image-registry-token }}
+        ports:
+          - 8222:8222
+          - 4222:4222
+    env:
+      # Dont judge me https://github.com/nats-io/nats-docker/blob/4fe4d656443e2a43caab61ecd665436e12e3358a/2.2.6/alpine3.13/nats-server.conf
+      NPQ_PASS: Neolut1on
+      NPQ_USER: neo
+    container:
+      image: node:16
+
+    steps:
+      - name: Install devDeps
+        run: |
+          apt-get update
+          apt-get install -y bash jq
+
+      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+        with:
+          sonar-token: ${{ secrets.sonar-token }}
+          github-token: ${{ secrets.github-token }}
+          checkout-ref: ${{ inputs.checkout-ref }}
+          sonar-project-base-dir: ${{ inputs.sonar-project-base-dir }}
+          sonar-organization: ${{ inputs.sonar-organization }}
+          sonar-projectKey: ${{ inputs.sonar-projectKey }}
+          sonar-branch-name: ${{ inputs.sonar-branch-name }}
+          sonar-sources: ${{ inputs.sonar-sources }}
+          sonar-inclusions: ${{ inputs.sonar-inclusions }}
+          sonar-exclusions: ${{ inputs.sonar-exclusions }}
+          sonar-tests: ${{ inputs.sonar-tests }}
+          sonar-test-inclusions: ${{ inputs.sonar-test-inclusions }}
+          sonar-test-exclusions: ${{ inputs.sonar-test-exclusions }}
+          sonar-coverage-exclusions: ${{ inputs.sonar-coverage-exclusions }}
+          sonar-lcov-reportpaths: ${{ inputs.sonar-lcov-reportpaths }}
+          sonar-verbose: ${{ inputs.sonar-verbose }}
+          default-branch: ${{ inputs.default-branch }}
+          tsconfig-build-file: ${{ inputs.tsconfig-build-file }}
+          prettier-source-paths: ${{ inputs.prettier-source-paths }}
+          eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
+          eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
+
+  check-code-compliance:
+    if: needs.prepare.outputs.is-pr-open == 'true'
+
+    name: check-code-compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    needs:
+      - prepare
+
+    steps:
+      - uses: neohelden/actions-library/check-code-compliance@main
+        with:
+          repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
+          checkout-ref: ${{ inputs.checkout-ref }}
+          artifact-name: ${{ inputs.artifact-name }}
+          license-exclude-packages: ${{ inputs.license-exclude-packages }}
+          audit-ci-config: ${{ inputs.audit-ci-config }}
+
+  build-docker-image:
+    name: build-docker-image
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs:
+      - build-and-test
+      - check-code-compliance
+      - prepare
+
+    steps:
+      - name: Prepare build secrets
+        id: dockerArgs
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        run: |
+          echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
+
+      - uses: neohelden/actions-library/build-docker-image@main
+        if: needs.prepare.outputs.docker-file-exists == 'true'
+        with:
+          image-registry-username: ${{ secrets.image-registry-username }}
+          image-registry-token: ${{ secrets.image-registry-token }}
+          registry-org: ${{ inputs.registry-org }}
+          image-name: ${{ inputs.image-name }}
+          container-verify-cmd: ${{ inputs.container-verify-cmd }}
+          checkout-ref: ${{ inputs. checkout-ref}}
+          image-registry: ${{ inputs.image-registry }}
+          maximize-build-space: ${{ inputs.maximize-build-space }}
+          image-tag: ${{ inputs.image-tag }}
+          docker-file: ${{ inputs.docker-file }}
+          docker-context: ${{ inputs.docker-context }}
+          platforms: ${{ inputs.platforms }}
+          docker-push-build-args: ${{ inputs.docker-push-build-args }}
+          docker-push-build-secrets: |
+            sentry-org=${{ inputs.sentry-organization }}
+            sentry-project=${{ inputs.sentry-project }}
+            ${{ steps.dockerArgs.outputs.sentry-conditional-token }}
+            ${{ secrets.docker-push-build-secrets }}
+          docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
+
+  ## cannot live in a Composite since that does not support Actions hosted in private registries
+  deploy-pr:
+    name: deploy-pr
+
+    if: contains(github.event.pull_request.labels.*.name, 'deploy')
+
+    needs:
+      - build-docker-image
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      argo-suffix: ${{ steps.prepare.outputs.argocd-suffix }}
+
+    env:
+      ## workaround since we only have a token setup in Github, but the script expects username/password
+      ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
+      ARGOCD_USERNAME: ""
+      ARGOCD_PASSWORD: ""
+      WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
+
+    container:
+      image: registry.neohelden.com/internal/argocd-action:1.0.2
+      credentials:
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+
+    steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
+            abbreviation=$abbreviation"${element:0:1}"
+          done
+
+          echo ::set-output name=argocd-suffix::"-$abbreviation-${{ github.event.number }}"
+
+      - name: "Create PR App"
+        run: |
+          /argocd create \
+            --update \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
+            -b ${{ inputs.dev-gitops-base-branch }} \
+            -i registry.neohelden.com/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
+
+  status-badge:
+    if: (!contains(github.event.pull_request.body, 'App Deployment')) && contains(github.event.pull_request.labels.*.name, 'deploy')
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-pr
+    timeout-minutes: 5
+    steps:
+      - uses: neohelden/actions-library/argocd-add-status-badge@main
+        with:
+          argo-host: ${{ inputs.argo-host }}
+          argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}
+          argo-suffix: ${{ needs.deploy-pr.outputs.argo-suffix }}
+          github-token: ${{ secrets.github-token }}
+
+  semantic-release:
+    name: semantic-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    needs:
+      - build-docker-image
+    steps:
+      - uses: neohelden/actions-library/semantic-release@main
+        with:
+          checkout-ref: ${{ inputs.checkout-ref }}
+          gh-app-id: ${{ secrets.gh-app-id }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
+          release-branch: ${{ inputs.release-branch }}
+          release-prefix: ${{ inputs.release-prefix }}
+          release-extra-plugins: ${{ inputs.release-extra-plugins }}
+          npm-automation-token: ${{ secrets.npm-automation-token }}
+          tsconfig-build-file: ${{ inputs.tsconfig-build-file }}
+          dev-branch: ${{ inputs.default-branch }}
+          release-labels: ${{ inputs.release-labels }}
+          auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}

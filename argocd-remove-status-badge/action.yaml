@@ -1,0 +1,44 @@
+name: ArgoCD Status Badge Detach
+description: Detaches the ArgoCD status badge from the PR description added from Attach ArgoCD Status Badge
+
+inputs:
+  github-token:
+    description: A github token for the action
+    required: true
+  check-for-line:
+    description: The line to check for
+    required: false
+    default: Please do not edit above this line!
+
+runs:
+  using: "composite"
+  steps:
+    - name: Remove status
+      env:
+        PR_ADDITION_LAST_LINE: ${{ inputs.check-for-line }}
+      if: contains(github.event.pull_request.body, '${{ env.PR_ADDITION_LAST_LINE }}')
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const pr = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          const prBody = pr.data.body || "";
+          let found = !prBody.includes(process.env.PR_ADDITION_LAST_LINE);
+          let newBody = prBody.split('\n').filter(line => {
+             let tmp = found;
+             if (found) return true;
+             found = line.includes(process.env.PR_ADDITION_LAST_LINE);
+             return tmp;
+          }).join('\n');
+
+          github.rest.pulls.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.number,
+            body: newBody
+          });
+        github-token: ${{ inputs.github-token }}

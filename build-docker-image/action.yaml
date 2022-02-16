@@ -2,6 +2,10 @@ name: "build-docker-image"
 description: "Builds and releases a Docker container"
 
 inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
   container-verify-cmd:
     description: "Log entry which shows up if the container starts up successfully after build"
     required: true
@@ -9,11 +13,15 @@ inputs:
     description: url to the container registry where to push container images too
     required: false
     default: registry.neohelden.com
+  maximize-build-space:
+    description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software.
+    required: false
+    default: "false"
   image-registry-username:
     description: Username used to login at the image registry
     required: true
   image-registry-token:
-    description: TOken use to login at the image registry
+    description: Token use to login at the image registry
     required: true
   registry-org:
     description: Organization within the image registry where to push container images too
@@ -43,37 +51,102 @@ inputs:
     description: Build Args used when building the Docker image
     required: false
     default: ""
+  docker-push-build-secrets:
+    description: Secrets passed to docker-build-push action in yaml multiline format
+    required: false
+    default: ""
+  docker-push-build-secret-files:
+    description: Secret files passed to docker-build-push-action in yaml multiline format
+    required: false
+    default: ""
 
 runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v2
 
+      with:
+        ref: ${{ inputs.checkout-ref }}
+
     - shell: bash
       id: image-name
       run: |
         if [ -n "${{ inputs.image-name }}" ]
         then
-          echo "::set-output name=value::$(echo ${{ inputs.image-name }})
+          echo "::set-output name=value::$(echo ${{ inputs.image-name }})"
         else
-          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')
+          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
         fi
 
+    - name: Install semantic-release
+      shell: bash
+      run: |
+        sudo npm install -g \
+          semantic-release@18.0.0 \
+          @semantic-release/exec@6.0.1
+
+        wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq 
+        chmod +x /usr/bin/yq
+
+    - name: Extract branch name
+      shell: bash
+      run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+      id: extract_branch
+
+    - name: set version of app
+      shell: bash
+      run: |
+        if [ -f package.json ]; then
+          COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
+        elif [ -f pubspec.yaml ]; then
+          COMMAND="yq -i e '.version = \\\"\${nextRelease.version}\\\"' pubspec.yaml"
+        else
+          COMMAND="echo Will release \${nextRelease.version}"
+        fi
+
+
+        cat <<EOF > .releaserc.yaml
+        branches: ["${{ steps.extract_branch.outputs.short_ref }}","${{ github.event.repository.default_branch }}"]
+        tagFormat: '\${version}'
+        dryRun: true
+        ci: true
+        debug: true
+        plugins:
+          - '@semantic-release/commit-analyzer'
+          - [
+              '@semantic-release/exec',
+              {
+                'verifyReleaseCmd': "$COMMAND",
+              },
+            ]
+        EOF
+
+        npx semantic-release --debug
+
     # use specific commit-sha to be sure this is not changed
-    - uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
+    - name: Maximize build space
+      if: ${{ inputs.maximize-build-space == true }}
+      uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
         remove-dotnet: "true"
         remove-android: "true"
         remove-haskell: "true"
         build-mount-path: /var/lib/docker
 
-    - shell: bash
+    - name: Restart Docker service
+      if: ${{ inputs.maximize-build-space == true }}
+      shell: bash
       run: sudo service docker restart
 
     - id: docker_meta
       uses: docker/metadata-action@v3.5.0
       with:
         images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
+        tags: |
+          type=schedule,pattern=nightly
+          type=edge,branch=develop
+          type=ref,event=pr
+          type=ref,suffix=-{{sha}},event=branch
 
     - uses: docker/setup-buildx-action@v1
 
@@ -86,6 +159,7 @@ runs:
 
     - name: Build Docker Image
       uses: docker/build-push-action@v2
+      id: docker_build
       with:
         context: ${{ inputs.docker-context }}
         file: ${{ inputs.docker-file }}
@@ -93,18 +167,25 @@ runs:
           ${{ steps.docker_meta.outputs.tags }}
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         labels: ${{ steps.docker_meta.outputs.labels }}
-        cache-from: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }},${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest,${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+        cache-from: |
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:main
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:latest
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
+          ${{ steps.docker_meta.outputs.tags }}
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         cache-to: type=inline
         platforms: ${{ inputs.platforms }}
         load: true
         pull: true
         push: false
         build-args: ${{ inputs.docker-push-build-args }}
+        secret-files: ${{ inputs.docker-push-build-secret-files }}
+        secrets: ${{ inputs.docker-push-build-secrets }}
 
     - name: Test Docker image
       shell: bash {0}
       run: |
-        docker run -d --rm --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
         counter=0
         until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
         do

@@ -1,0 +1,51 @@
+name: "Delete PR Deployment"
+on:
+  workflow_call:
+    inputs:
+      argo-host:
+        description: ArgoCd host
+        required: true
+        type: string
+      argo-base-app:
+        description: ArgoCD app being used as base for deploying the built container image
+        required: true
+        type: string
+
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+      argocd-auth-token:
+        description: Token for authenticating on ArgoCD host
+        required: true
+
+jobs:
+  delete:
+    if: "github.event.action == 'unlabeled' && !contains(github.event.pull_request.labels.*.name, 'deploy') || github.event.action == 'closed'"
+    runs-on: ubuntu-latest
+
+    name: Delete PR-Deployment
+
+    env:
+      ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
+      ARGOCD_USERNAME: ""
+      ARGOCD_PASSWORD: ""
+
+    container:
+      image: registry.neohelden.com/internal/argocd-action:1.1.0
+      credentials:
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+
+    steps:
+      - name: "Delete PR App"
+        run: |
+          /argocd delete \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            -pr ${{ github.event.number }}
