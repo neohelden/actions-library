@@ -152,7 +152,7 @@ runs:
         <% end -%>
         EOF
 
-        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ ! "${{ inputs.dev-branch }}" = "${{ inputs.release-branch }}" ]; then
+        if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ "${{ inputs.dev-branch }}" != "${{ inputs.main-branch }}" ]; then
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
         fi
