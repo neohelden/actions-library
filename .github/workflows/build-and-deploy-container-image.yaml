@@ -336,7 +336,7 @@ jobs:
 
     steps:
       - name: Update asana tasks
-        uses: neohelden/actions-library/attach-asana-task@main
+        uses: ./attach-asana-task
         with:
           asana-secret: ${{ secrets.asana-github-api-token }}
 
@@ -372,7 +372,7 @@ jobs:
           apt-get update
           apt-get install -y bash jq
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: ./build-and-test-with-yarn
         with:
           sonar-token: ${{ secrets.sonar-token }}
           github-token: ${{ secrets.github-token }}
@@ -407,7 +407,7 @@ jobs:
       - prepare
 
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@main
+      - uses: ./check-code-compliance
         with:
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
@@ -431,7 +431,7 @@ jobs:
         run: |
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
-      - uses: neohelden/actions-library/build-docker-image@main
+      - uses: ./build-docker-image
         if: needs.prepare.outputs.docker-file-exists == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
@@ -510,7 +510,7 @@ jobs:
       - deploy-pr
     timeout-minutes: 5
     steps:
-      - uses: neohelden/actions-library/argocd-add-status-badge@main
+      - uses: ./argocd-add-status-badge
         with:
           argo-host: ${{ inputs.argo-host }}
           argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}
@@ -525,7 +525,7 @@ jobs:
     needs:
       - build-docker-image
     steps:
-      - uses: neohelden/actions-library/semantic-release@main
+      - uses: ./semantic-release
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
