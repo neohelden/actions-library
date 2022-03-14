@@ -218,3 +218,8 @@ runs:
             docker push $tag;
           done;
         fi
+
+    - name: Scan image for vulnerabilities
+      uses: azure/container-scan@v0
+      with:
+        image-name: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
