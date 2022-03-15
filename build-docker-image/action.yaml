@@ -215,4 +215,3 @@ runs:
           echo Pushing $tag;
           docker push $tag;
         done;
-      
