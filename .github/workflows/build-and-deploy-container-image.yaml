@@ -202,7 +202,7 @@ on:
       dev-gitops-base-branch:
         description: Branch within a gitops repositoriy used by ArgoCD
         required: false
-        default: main
+        default: develop
         type: string
       workspaces-base-domain:
         description: Domain name of the workspaces base
