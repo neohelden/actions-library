@@ -40,11 +40,11 @@ runs:
           for envpath in $charts; do
             local build_dir
 
-            if ! [ -s "$envpath/Chart.yaml" ]; then 
+            if ! [ -s "$envpath/Chart.yaml" ]; then
               echo "$envpath/Chart.yaml does not exist or is empty - ignoring"
               continue
             fi
-            
+
             build_dir="$TMP_DIR/$ref/${envpath#*helm/}"
             printf "\n\nCreating build directory: %s\n" "$build_dir"
             mkdir -p "$build_dir"
