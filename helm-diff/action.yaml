@@ -35,6 +35,7 @@ runs:
           printf "\n\nChecking out ref: %s\n" "$ref"
           git reset --hard HEAD
           git checkout "$ref" --quiet
+          git clean -xdf
 
           for envpath in $charts; do
             local build_dir
