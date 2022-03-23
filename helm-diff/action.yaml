@@ -79,6 +79,6 @@ runs:
             <summary>
             Extended diff
             </summary>
-            
+
             ${{ steps.helm-diff.outputs.diff }}
           </details>
