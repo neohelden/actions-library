@@ -51,7 +51,7 @@ runs:
             helm dependency build "$envpath"
 
             echo "Running 'helm template test $envpath'..."
-            helm template test "$envpath" --output-dir  "$build_dir"
+            helm template test "$envpath" --output-dir  "$build_dir" --debug
           done
         }
 
