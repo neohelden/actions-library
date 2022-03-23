@@ -33,6 +33,7 @@ runs:
         function build {
           local ref="$1"
           printf "\n\nChecking out ref: %s\n" "$ref"
+          git reset --hard HEAD
           git checkout "$ref" --quiet
 
           for envpath in $charts; do
