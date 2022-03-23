@@ -46,6 +46,7 @@ runs:
             build_dir="$TMP_DIR/$ref/${envpath#*helm/}"
             printf "\n\nCreating build directory: %s\n" "$build_dir"
             mkdir -p "$build_dir"
+            helm dependency build 
 
             echo "Running 'helm template test $envpath'..."
             helm template test "$envpath" --output-dir  "$build_dir"
