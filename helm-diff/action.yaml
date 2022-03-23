@@ -1,0 +1,84 @@
+name: Helm Diff
+description: Compares Chart.yaml with base
+
+inputs:
+  head-ref:
+    description: head ref
+    default: ${{ github.head_ref }}
+    required: false
+  base-ref:
+    description: base ref
+    default: ${{ github.base_ref }}
+    required: false
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.checkout-ref }}
+        fetch-depth: 0
+
+    - id: helm-diff
+      run: |
+        TMP_DIR="$(mktemp -d)"
+
+        charts=$(find . -maxdepth 4 -name Chart.yaml -exec dirname {} \; | sort | uniq)
+
+        function build {
+          local ref="$1"
+          printf "\n\nChecking out ref: %s\n" "$ref"
+          git reset --hard HEAD
+          git checkout "$ref" --quiet
+          git clean -xdf
+
+          for envpath in $charts; do
+            local build_dir
+
+            if ! [ -s "$envpath/Chart.yaml" ]; then
+              echo "$envpath/Chart.yaml does not exist or is empty - ignoring"
+              continue
+            fi
+
+            build_dir="$TMP_DIR/$ref/${envpath#*helm/}"
+            printf "\n\nCreating build directory: %s\n" "$build_dir"
+            mkdir -p "$build_dir"
+            helm dependency build "$envpath"
+
+            echo "Running 'helm template test $envpath'..."
+            helm template test "$envpath" --output-dir  "$build_dir" --debug
+          done
+        }
+
+        build "${{ inputs.head-ref }}"
+        build "${{ inputs.base-ref }}"
+
+        set +e
+        diff=$(git diff --no-index "$TMP_DIR/${{ inputs.base-ref }}" "$TMP_DIR/${{ inputs.head-ref }}")
+        set -e
+
+        output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
+        escaped_output=${output//$'\n'/'%0A'}
+        echo "::set-output name=diff::$escaped_output"
+        printf "\n\nOutput: %s\n" "$escaped_output"
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
+
+    - uses: marocchino/sticky-pull-request-comment@v2
+      if: ${{ github.event_name }} == "pull_request"
+      with:
+        message: |
+          **Helm Diff**
+          <details>
+            <summary>
+            Extended diff
+            </summary>
+
+            ${{ steps.helm-diff.outputs.diff }}
+          </details>
