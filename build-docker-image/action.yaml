@@ -93,7 +93,7 @@ runs:
       run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
       id: extract_branch
 
-    # This will set the version inside the container image 
+    # This will set the version inside the container image
     # When no next version can be determined, the version will be set to the current version
     - name: set version of app
       shell: bash
