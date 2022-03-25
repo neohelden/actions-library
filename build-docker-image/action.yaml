@@ -204,7 +204,7 @@ runs:
             echo "Exiting after $counter retries!"
             exit 1
           fi
-          
+
           ((counter++))
         done
         echo "Container started up successfully!"
