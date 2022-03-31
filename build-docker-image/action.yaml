@@ -117,8 +117,15 @@ runs:
         fi
 
 
+        # for scheduled runs we do not have the default_branch in the event
+        if [ "${{ github.event.repository.default_branch }}"  == "" ] || [ "${{ github.event.repository.default_branch }}"  == "${GITHUB_REF#refs/*/}" ];then
+          DEFAULT_BRANCH=
+        else
+          DEFAULT_BRANCH=,"${{ github.event.repository.default_branch }}"
+        fi
+
         cat <<EOF > .releaserc.yaml
-        branches: ["${{ steps.extract_branch.outputs.short_ref }}"$BRANCH_ADD]
+        branches: ["${GITHUB_REF#refs/*/}${DEFAULT_BRANCH}"]
         tagFormat: '\${version}'
         dryRun: true
         ci: true
