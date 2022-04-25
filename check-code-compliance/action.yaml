@@ -28,11 +28,11 @@ runs:
     - uses: actions/checkout@v2
       with:
         ref: ${{ inputs.checkout-ref }}
-    
+
     - name: Check if node project (package.json exists)
       shell: bash
       id: check_node
-      run: | 
+      run: |
         if [ ! -f package.json ]; then
           echo "No package.json found, skipping node check"
           echo "::set-output name=node-check-result::false"
