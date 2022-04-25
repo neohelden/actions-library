@@ -29,6 +29,17 @@ runs:
       with:
         ref: ${{ inputs.checkout-ref }}
 
+    - name: Check if node project (package.json exists)
+      shell: bash
+      id: check_node
+      run: |
+        if [ ! -f package.json ]; then
+          echo "No package.json found, skipping node check"
+          echo "::set-output name=node-check-result::false"
+          exit 0
+        fi
+        echo "::set-output name=node-project::true"
+
     - name: Copy spelling config
       shell: bash
       run: |
@@ -61,12 +72,14 @@ runs:
 
     - name: Install dependencies
       run: yarn
+      if: steps.check_node.outputs.node-project == 'true'
       working-directory: ./
       shell: bash
 
     - name: Load global audit-ci config
       shell: bash
       working-directory: /tmp
+      if: steps.check_node.outputs.node-project == 'true'
       env:
         GIT_SSH_COMMAND: "ssh -i /tmp/audit_ci_key -o IdentitiesOnly=yes"
       run: |
@@ -101,6 +114,7 @@ runs:
         mv config/audit-ci.json /tmp/common_audit_ci.json
 
     - name: Audit dependencies
+      if: steps.check_node.outputs.node-project == 'true'
       run: |
         LOCAL_FILE=${{ inputs.audit-ci-config }}
         GLOBAL_FILE=/tmp/common_audit_ci.json
@@ -137,6 +151,7 @@ runs:
     - name: Check Licenses
       working-directory: ./
       shell: bash
+      if: steps.check_node.outputs.node-project == 'true'
       run: |
         npx license-checker \
             --onlyAllow="Python-2.0; \
@@ -162,6 +177,7 @@ runs:
 
     - name: Upload license file
       uses: actions/upload-artifact@v2
+      if: steps.check_node.outputs.node-project == 'true'
       with:
         name: Licenses - ${{ inputs.artifact-name }}
         path: ./licenses.csv
@@ -169,11 +185,13 @@ runs:
 
     - name: Generate CycloneDX SBOM
       working-directory: ./
+      if: steps.check_node.outputs.node-project == 'true'
       run: npx @cyclonedx/bom -o bom.xml
       shell: bash
 
     - name: Upload SBOM
       uses: actions/upload-artifact@v2
+      if: steps.check_node.outputs.node-project == 'true'
       with:
         name: BOM - ${{ inputs.artifact-name }}
         path: ./bom.xml
