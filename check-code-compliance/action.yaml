@@ -153,7 +153,7 @@ runs:
       shell: bash
       if: steps.check_node.outputs.node-project == 'true'
       run: |
-        npx license-checker \
+        npx license-checker-rseidelsohn \
             --onlyAllow="Python-2.0; \
               MIT; \
               Apache-2.0; \
@@ -170,7 +170,7 @@ runs:
               CC-BY-4.0; \
               Unicode-DFS-2016; \
               VOL" \
-            --excludePackages="${{ inputs.license-exclude-packages }}" \
+            --excludePackages="@neohelden/eslint-config;${{ inputs.license-exclude-packages }}" \
             --excludePrivatePackages \
             --csv \
             --out licenses.csv
