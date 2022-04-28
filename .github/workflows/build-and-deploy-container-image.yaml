@@ -279,6 +279,9 @@ on:
       npm-automation-token:
         description: Automation token for NPM to publish packages
         required: false
+      dependency-track-apikey:
+        description: API key for the dependency-track service
+        required: false
 
 permissions:
   actions: none
@@ -414,6 +417,7 @@ jobs:
           artifact-name: ${{ inputs.artifact-name }}
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
+          dependency-track-apikey: ${{ secrets.dependency-track-apikey }}
 
   build-docker-image:
     name: build-docker-image

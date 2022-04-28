@@ -20,6 +20,22 @@ inputs:
   repo-ssh-key:
     description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
     required: false
+  dependency-track-serverhostname:
+    description: The hostname of the dependency-track server
+    required: false
+    default: dtrack.neohelden.com
+  dependency-track-project-name: 
+    description: The name of the dependency-track project
+    required: false
+    default: ${{ github.event.repository.name }}
+  dependency-track-project-version:
+    description: The version of the dependency-track project
+    required: false
+    default: ${{ github.event.pull_request.head.sha }}
+  dependency-track-apikey:
+    description: The API key to use for the dependency-track server
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -188,6 +204,17 @@ runs:
       if: steps.check_node.outputs.node-project == 'true'
       run: npx @cyclonedx/bom -o bom.xml
       shell: bash
+
+    - name: Upload BOM to Dependency-Track
+      uses: DependencyTrack/gh-upload-sbom@v1.0.0
+      if: inputs.dependency-track-apikey != ''
+      with: 
+        serverhostname: ${{ inputs.dependency-track-serverhostname }}
+        projectname: ${{ inputs.dependency-track-project-name }}
+        projectversion: ${{ inputs.dependency-track-project-version }}
+        apiKey: ${{ inputs.dependency-track-apikey }}
+        autocreate: true
+
 
     - name: Upload SBOM
       uses: actions/upload-artifact@v2
