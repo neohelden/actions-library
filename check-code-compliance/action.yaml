@@ -24,7 +24,7 @@ inputs:
     description: The hostname of the dependency-track server
     required: false
     default: dtrack.neohelden.com
-  dependency-track-project-name: 
+  dependency-track-project-name:
     description: The name of the dependency-track project
     required: false
     default: ${{ github.event.repository.name }}
@@ -35,7 +35,7 @@ inputs:
   dependency-track-apikey:
     description: The API key to use for the dependency-track server
     required: false
-    default: ''
+    default: ""
 
 runs:
   using: "composite"
@@ -208,13 +208,12 @@ runs:
     - name: Upload BOM to Dependency-Track
       uses: DependencyTrack/gh-upload-sbom@v1.0.0
       if: inputs.dependency-track-apikey != ''
-      with: 
+      with:
         serverhostname: ${{ inputs.dependency-track-serverhostname }}
         projectname: ${{ inputs.dependency-track-project-name }}
         projectversion: ${{ inputs.dependency-track-project-version }}
         apiKey: ${{ inputs.dependency-track-apikey }}
         autocreate: true
-
 
     - name: Upload SBOM
       uses: actions/upload-artifact@v2
