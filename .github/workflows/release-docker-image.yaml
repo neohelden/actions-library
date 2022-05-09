@@ -67,7 +67,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: docker/login-action@v1
+      - uses: docker/login-action@v2
         with:
           registry: ${{ inputs.image-registry }}
           username: ${{ secrets.image-registry-username }}
