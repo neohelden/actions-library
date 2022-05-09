@@ -99,13 +99,6 @@ runs:
     - name: set version of app
       shell: bash
       run: |
-
-        if [ -n "${{ github.event.repository.default_branch }}" ]; then
-          BRANCH_ADD=,"${{ github.event.repository.default_branch }}"
-        else 
-          BRANCH_ADD=
-        fi        
-
         if [ -f package.json ]; then
           npm version $(git describe --tags --abbrev=0) --git-tag-version=false
           COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
