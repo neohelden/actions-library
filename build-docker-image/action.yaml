@@ -98,7 +98,7 @@ runs:
     # When no next version can be determined, the version will be set to the current version
     - name: set version of app
       shell: bash
-      run: |      
+      run: |
         if [ -f package.json ]; then
           npm version $(git describe --tags --abbrev=0) --git-tag-version=false
           COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
