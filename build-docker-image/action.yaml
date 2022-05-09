@@ -99,6 +99,13 @@ runs:
     - name: set version of app
       shell: bash
       run: |
+        
+        if [ -n "${{ github.event.repository.default_branch }}" ]; then
+          BRANCH_ADD=
+        else 
+          BRANCH_ADD=,"${{ github.event.repository.default_branch }}"
+        fi        
+
         if [ -f package.json ]; then
           npm version $(git describe --tags --abbrev=0) --git-tag-version=false
           COMMAND="npm version \${nextRelease.version} --git-tag-version=false"
@@ -111,7 +118,7 @@ runs:
 
 
         cat <<EOF > .releaserc.yaml
-        branches: ["${{ steps.extract_branch.outputs.short_ref }}","${{ github.event.repository.default_branch }}"]
+        branches: ["${{ steps.extract_branch.outputs.short_ref }}"$BRANCH_ADD]
         tagFormat: '\${version}'
         dryRun: true
         ci: true
