@@ -1,0 +1,117 @@
+name: "build-jib-image"
+description: "Builds and releases a Jib container"
+
+inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
+  container-verify-cmd:
+    description: "Log entry which shows up if the container starts up successfully after build"
+    required: true
+  image-registry:
+    description: url to the container registry where to push container images too
+    required: false
+    default: registry.neohelden.com
+  image-registry-username:
+    description: Username used to login at the image registry
+    required: true
+  image-registry-token:
+    description: Token use to login at the image registry
+    required: true
+  registry-org:
+    description: Organization within the image registry where to push container images too
+    required: false
+    default: neohelden
+  image-name:
+    description: Name of the container image. Default is derived from the repo name.
+    required: false
+    default: ${{ github.event.repository.name }}
+  image-tag:
+    description: Tag of the container image
+    required: false
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+  image-base:
+    description: Base image being used for creating the jib container image
+    required: false
+    default: quay.io/sdase/openjdk-runtime:17.0.2-hotspot-distroless
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.checkout-ref }}
+
+    - shell: bash
+      id: image-name
+      run: |
+        if [ -n "${{ inputs.image-name }}" ]
+        then
+          echo "::set-output name=value::$(echo ${{ inputs.image-name }})"
+        else
+          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+        fi
+
+    - name: Install semantic-release
+      shell: bash
+      run: |
+        sudo npm install -g \
+          semantic-release@18.0.0 \
+          @semantic-release/exec@6.0.1
+
+        wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq
+        chmod +x /usr/bin/yq
+
+    - name: Extract branch name
+      shell: bash
+      run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+      id: extract_branch
+
+    - name: Jib
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: |
+          jib
+            -Djib.to.auth.username=${{ inputs.image-registry-username }}
+            -Djib.to.auth.password=${{ inputs.image-registry-token }}
+            -Djib.from.image=${{ inputs.image-base }}
+            -Djib.to.image=${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+            -Djib.useOnlyProjectCache=true
+            -Djib.disableUpdateChecks=true
+            -Djib.container.user=1001
+            -Djib.httpTimeout=0
+            -Djib.container.creationTime=USE_CURRENT_TIMESTAMP
+            -Djib.console=plain
+
+    - uses: docker/login-action@v1
+      with:
+        registry: ${{ inputs.image-registry }}
+        username: ${{ inputs.image-registry-username }}
+        password: ${{ inputs.image-registry-token }}
+
+    - name: Test Jib image
+      shell: bash {0}
+      run: |
+        docker run -d --name verify ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+        counter=0
+        until docker logs verify 2>&1 | ${{ inputs.container-verify-cmd }}
+        do
+
+          echo "Waiting for container to start up..."
+          sleep 5
+
+          docker ps -a 2>&1
+          docker logs verify 2>&1
+
+          if [ $counter -gt 20 ]
+          then
+            echo "Exiting after $counter retries!"
+            exit 1
+          fi
+
+          ((counter++))
+        done
+        echo "Container started up successfully!"

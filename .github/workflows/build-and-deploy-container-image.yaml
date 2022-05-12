@@ -303,6 +303,9 @@ jobs:
     outputs:
       is-pr-open: ${{ steps.check-event.outputs.is-pr-open }}
       docker-file-exists: ${{ steps.find-docker-file.outputs.docker-file-exists }}
+      jib-is-enabled: ${{ steps.find-jib-plugin.outputs.jib-plugin-available }}
+      gradle-available: ${{ steps.find-gradle.outputs.gradle-available }}
+      package-json-available: ${{ steps.find-package-json.outputs.package-json-available }}
 
     steps:
       - name: check-event
@@ -323,6 +326,33 @@ jobs:
             echo "::set-output name=docker-file-exists::true"
           else
             echo "::set-output name=docker-file-exists::false"
+          fi
+
+      - name: find-jib-plugin
+        id: find-jib-plugin
+        run: |
+          if [ -f "./src/main/jib/config.yml" ]; then
+            echo "::set-output name=jib-plugin-available::true"
+          else
+            echo "::set-output name=jib-plugin-available::false"
+          fi
+
+      - name: find-gradle
+        id: find-gradle
+        run: |
+          if [ -f "./build.gradle" ]; then
+            echo "::set-output name=gradle-available::true"
+          else
+            echo "::set-output name=gradle-available::false"
+          fi
+
+      - name: find-package-json
+        id: find-package-json
+        run: |
+          if [ -f "./package.json" ]; then
+            echo "::set-output name=package-json-available::true"
+          else
+            echo "::set-output name=package-json-available::false"
           fi
 
   update-asana:
@@ -373,6 +403,7 @@ jobs:
           apt-get install -y bash jq
 
       - uses: neohelden/actions-library/build-and-test-with-yarn@main
+        if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
           github-token: ${{ secrets.github-token }}
@@ -396,6 +427,27 @@ jobs:
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
 
+      - uses: neohelden/actions-library/build-and-test-with-gradle@main
+        if: needs.prepare.outputs.gradle-available == 'true'
+        with:
+          sonar-token: ${{ secrets.sonar-token }}
+          github-token: ${{ secrets.github-token }}
+          checkout-ref: ${{ inputs.checkout-ref }}
+          sonar-project-base-dir: ${{ inputs.sonar-project-base-dir }}
+          sonar-organization: ${{ inputs.sonar-organization }}
+          sonar-projectKey: ${{ inputs.sonar-projectKey }}
+          sonar-branch-name: ${{ inputs.sonar-branch-name }}
+          sonar-sources: ${{ inputs.sonar-sources }}
+          sonar-inclusions: ${{ inputs.sonar-inclusions }}
+          sonar-exclusions: ${{ inputs.sonar-exclusions }}
+          sonar-tests: ${{ inputs.sonar-tests }}
+          sonar-test-inclusions: ${{ inputs.sonar-test-inclusions }}
+          sonar-test-exclusions: ${{ inputs.sonar-test-exclusions }}
+          sonar-coverage-exclusions: ${{ inputs.sonar-coverage-exclusions }}
+          sonar-lcov-reportpaths: ${{ inputs.sonar-lcov-reportpaths }}
+          sonar-verbose: ${{ inputs.sonar-verbose }}
+          default-branch: ${{ inputs.default-branch }}
+
   check-code-compliance:
     if: needs.prepare.outputs.is-pr-open == 'true'
 
@@ -415,8 +467,8 @@ jobs:
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
 
-  build-docker-image:
-    name: build-docker-image
+  build-container-image:
+    name: build-container-image
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs:
@@ -431,7 +483,21 @@ jobs:
         run: |
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
-      - uses: neohelden/actions-library/build-docker-image@main
+      - name: Build Jib image
+        uses: neohelden/actions-library/build-jib-image@main
+        if: needs.prepare.outputs.jib-is-enabled == 'true'
+        with:
+          image-registry-username: ${{ secrets.image-registry-username }}
+          image-registry-token: ${{ secrets.image-registry-token }}
+          registry-org: ${{ inputs.registry-org }}
+          image-name: ${{ inputs.image-name }}
+          container-verify-cmd: ${{ inputs.container-verify-cmd }}
+          checkout-ref: ${{ inputs. checkout-ref}}
+          image-registry: ${{ inputs.image-registry }}
+          image-tag: ${{ inputs.image-tag }}
+
+      - name: Build Docker image
+        uses: neohelden/actions-library/build-docker-image@main
         if: needs.prepare.outputs.docker-file-exists == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
@@ -461,7 +527,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
 
     needs:
-      - build-docker-image
+      - build-container-image
 
     runs-on: ubuntu-latest
 
@@ -523,7 +589,7 @@ jobs:
     timeout-minutes: 10
 
     needs:
-      - build-docker-image
+      - build-container-image
     steps:
       - uses: neohelden/actions-library/semantic-release@main
         with:
