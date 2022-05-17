@@ -450,13 +450,25 @@ jobs:
       - prepare
 
     steps:
-      - uses: neohelden/actions-library/check-code-compliance-js@main
+      - uses: neohelden/actions-library/check-code-compliance-js@feat/megalint-java #main
+        if: needs.prepare.outputs.package-json-available == 'true'
         with:
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
           artifact-name: ${{ inputs.artifact-name }}
           license-exclude-packages: ${{ inputs.license-exclude-packages }}
           audit-ci-config: ${{ inputs.audit-ci-config }}
+
+      - uses: neohelden/actions-library/check-code-compliance-java@feat/megalint-java #TODO: main
+        if: needs.prepare.outputs.gradle-available == 'true'
+        with:
+          repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
+          checkout-ref: ${{ inputs.checkout-ref }}
+          artifact-name: ${{ inputs.artifact-name }}
+          license-exclude-packages: ${{ inputs.license-exclude-packages }}
+          audit-ci-config: ${{ inputs.audit-ci-config }}
+          gh-app-id: ${{ secrets.gh-app-id }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
 
   build-container-image:
     name: build-container-image

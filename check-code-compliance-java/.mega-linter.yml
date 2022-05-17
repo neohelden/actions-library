@@ -1,0 +1,2 @@
+PRE_COMMANDS:
+  - command: npm install -g @cspell/dict-public-licenses @cspell/dict-typescript @cspell/dict-de-de @cspell/dict-fullstack @cspell/dict-bash

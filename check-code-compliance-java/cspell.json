@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "argocd",
+    "neohelden",
+    "niam",
+    "testid",
+    "visualstudio",
+    "rasa",
+    "impex",
+    "gitops",
+    "asana",
+    "sbom",
+    "mkdir",
+    "megalint",
+    "neap",
+    "cyclonedx"
+  ],
+  "import": [
+    "@cspell/dict-fullstack/cspell-ext.json",
+    "@cspell/dict-de-de/cspell-ext.json",
+    "@cspell/dict-public-licenses/cspell-ext.json",
+    "@cspell/dict-typescript/cspell-ext.json",
+    "@cspell/dict-bash/cspell-ext.json"
+  ],
+  "flagWords": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/vscode-extension/**",
+    "**/.git/**",
+    ".vscode",
+    "package-lock.json",
+    "report"
+  ]
+}
