@@ -427,7 +427,7 @@ jobs:
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
 
-      - uses: neohelden/actions-library/build-and-test-with-gradle@feat/java #TODO: main
+      - uses: neohelden/actions-library/build-and-test-with-gradle@main
         if: needs.prepare.outputs.gradle-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
@@ -475,7 +475,7 @@ jobs:
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
       - name: Build Jib image
-        uses: neohelden/actions-library/build-jib-image@feat/java #TODO: main
+        uses: neohelden/actions-library/build-jib-image@main
         if: needs.prepare.outputs.jib-is-enabled == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
