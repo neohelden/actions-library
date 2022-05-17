@@ -79,6 +79,16 @@ runs:
       with:
         arguments: check jacocoTestReport --info
 
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        check_name: Test Results
+        report_individual_runs: "true"
+        files: |
+          **/build/test-results/test/*.xml
+          **/build/integTest-results/*.xml
+
     - name: Cache SonarCloud packages
       uses: actions/cache@v1
       with:

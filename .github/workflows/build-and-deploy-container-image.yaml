@@ -286,7 +286,7 @@ permissions:
   contents: write
   deployments: none
   id-token: none
-  issues: none
+  issues: read
   #discussions: none
   packages: none
   #pages: none
@@ -427,7 +427,7 @@ jobs:
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
 
-      - uses: neohelden/actions-library/build-and-test-with-gradle@main
+      - uses: neohelden/actions-library/build-and-test-with-gradle@feat/java #TODO: main
         if: needs.prepare.outputs.gradle-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
@@ -437,15 +437,6 @@ jobs:
           sonar-organization: ${{ inputs.sonar-organization }}
           sonar-projectKey: ${{ inputs.sonar-projectKey }}
           sonar-branch-name: ${{ inputs.sonar-branch-name }}
-          sonar-sources: ${{ inputs.sonar-sources }}
-          sonar-inclusions: ${{ inputs.sonar-inclusions }}
-          sonar-exclusions: ${{ inputs.sonar-exclusions }}
-          sonar-tests: ${{ inputs.sonar-tests }}
-          sonar-test-inclusions: ${{ inputs.sonar-test-inclusions }}
-          sonar-test-exclusions: ${{ inputs.sonar-test-exclusions }}
-          sonar-coverage-exclusions: ${{ inputs.sonar-coverage-exclusions }}
-          sonar-lcov-reportpaths: ${{ inputs.sonar-lcov-reportpaths }}
-          sonar-verbose: ${{ inputs.sonar-verbose }}
           default-branch: ${{ inputs.default-branch }}
 
   check-code-compliance:
@@ -484,7 +475,7 @@ jobs:
           echo "::set-output name=sentry-conditional-token::sentry-auth-token=${{ secrets.sentry-auth-token }}"
 
       - name: Build Jib image
-        uses: neohelden/actions-library/build-jib-image@main
+        uses: neohelden/actions-library/build-jib-image@feat/java #TODO: main
         if: needs.prepare.outputs.jib-is-enabled == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}

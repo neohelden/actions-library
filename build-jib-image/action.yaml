@@ -45,7 +45,8 @@ runs:
         fetch-depth: 0
         ref: ${{ inputs.checkout-ref }}
 
-    - shell: bash
+    - name: image-name
+      shell: bash
       id: image-name
       run: |
         if [ -n "${{ inputs.image-name }}" ]
@@ -55,22 +56,32 @@ runs:
           echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
         fi
 
-    - name: Install semantic-release
+    - name: docker-meta
+      id: docker_meta
+      uses: docker/metadata-action@v3.5.0
+      with:
+        images: ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}
+        tags: |
+          type=schedule,pattern=nightly
+          type=edge,branch=develop
+          type=ref,event=pr
+          type=ref,suffix=-{{sha}},event=branch
+
+    - name: image-tags
+      id: image-tags
       shell: bash
       run: |
-        sudo npm install -g \
-          semantic-release@18.0.0 \
-          @semantic-release/exec@6.0.1
+        IN=${{ steps.docker_meta.outputs.tags }}
+        arrIN=(${IN//:/ })
+        echo ::set-output name=tag-only::${arrIN[1]}
 
-        wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq
-        chmod +x /usr/bin/yq
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: "17"
+        distribution: "adopt"
 
-    - name: Extract branch name
-      shell: bash
-      run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
-      id: extract_branch
-
-    - name: Jib
+    - name: Build jib image
       uses: gradle/gradle-build-action@v2
       with:
         arguments: |
@@ -79,6 +90,7 @@ runs:
             -Djib.to.auth.password=${{ inputs.image-registry-token }}
             -Djib.from.image=${{ inputs.image-base }}
             -Djib.to.image=${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
+            -Djib.to.tags=${{ steps.image-tags.outputs.tag-only }}
             -Djib.useOnlyProjectCache=true
             -Djib.disableUpdateChecks=true
             -Djib.container.user=1001
