@@ -450,7 +450,7 @@ jobs:
       - prepare
 
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@main
+      - uses: neohelden/actions-library/check-code-compliance-js@main
         with:
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
