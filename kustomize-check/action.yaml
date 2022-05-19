@@ -61,7 +61,7 @@ runs:
 
     - name: "vars replaced"
       run: |
-        kustomize build ${{ inputs.argocd-overlay-path }} | grep "\$(" && exit 1 || exit 0
+        kustomize build ${{ inputs.argocd-overlay-path }} | grep "well-defined vars that were never replaced" && exit 1 || exit 0
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       shell: bash
