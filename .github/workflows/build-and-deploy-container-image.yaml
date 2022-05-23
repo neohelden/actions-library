@@ -271,7 +271,7 @@ on:
         description: Token used for accessing GitHub.com
         required: true
       asana-github-api-token:
-        description: Token used for asana github api access
+        description: Token used for asana github api access (not used anymore, but kept for backwards-compatibility!)
         required: false
       sentry-auth-token:
         description: A sentry token available at /sentry-auth in the docker build
@@ -354,21 +354,6 @@ jobs:
           else
             echo "::set-output name=package-json-available::false"
           fi
-
-  update-asana:
-    if: github.event_name == 'pull_request' && (needs.prepare.outputs.is-pr-open == 'true' || github.event_name == 'pull_request_review')
-
-    name: Update asana tasks
-    runs-on: ubuntu-latest
-
-    needs:
-      - prepare
-
-    steps:
-      - name: Update asana tasks
-        uses: neohelden/actions-library/attach-asana-task@main
-        with:
-          asana-secret: ${{ secrets.asana-github-api-token }}
 
   build-and-test:
     if: needs.prepare.outputs.is-pr-open == 'true'
