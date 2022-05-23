@@ -59,6 +59,14 @@ runs:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       shell: bash
 
+    - name: "vars replaced"
+      run: |
+        kustomize build ${{ inputs.argocd-overlay-path }} | grep -v 'nats://$(NPQ_HEADLESS_SERVICE_NAME).$(POD_NAMESPACE):6222' | \
+        grep -v '$(POD_NAME).$(POD_NAMESPACE):6222' | grep "\$(" && exit 1 || exit 0
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      shell: bash
+
     - name: "properties replaced"
       run: |
         if [ "${{inputs.ignore-kustomize-me }}" == "true" ]; then
