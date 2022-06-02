@@ -80,4 +80,4 @@ jobs:
       - uses: neohelden/actions-library/semantic-release@main
         with:
           gh-app-id: ${{ secrets.gh-app-id }}
-          gh-app-private-key: ${{ secrets.gp-app-private-key }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
