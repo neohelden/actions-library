@@ -1,7 +1,7 @@
 on:
   workflow_call:
     inputs:
-      kustomize-check-paths: 
+      kustomize-check-paths:
         required: true
         type: string
         description: A comma seperated array of paths where to check kustomizations
@@ -22,7 +22,6 @@ on:
         description: The GitHub App private key
 
 jobs:
-  
   prepare-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -38,7 +37,6 @@ jobs:
           echo ================== results ==================
           echo "::set-output name=matrix::$converted"
 
-
   check-kustomization:
     needs:
       - prepare-matrix
@@ -47,14 +45,13 @@ jobs:
         argocd-overlay-path: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     name: "Check kustomization"
     runs-on: ubuntu-latest
-    steps:     
+    steps:
       - uses: neohelden/actions-library/kustomize-check@main
         with:
           argocd-overlay-path: ${{ matrix.argocd-overlay-path }}
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
           ignore-kustomize-me: ${{ inputs.ignore-kustomize-me }}
 
-    
   kustomize-diff:
     if: github.event_name == 'pull_request'
     needs:
@@ -62,7 +59,7 @@ jobs:
     name: "kustomize diff"
     runs-on: ubuntu-latest
 
-    steps:     
+    steps:
       - uses: neohelden/actions-library/kustomize-diff@main
         with:
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
