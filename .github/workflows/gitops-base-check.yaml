@@ -1,0 +1,76 @@
+on:
+  workflow_call:
+    inputs:
+      kustomize-check-paths: 
+        required: true
+        type: string
+        description: A comma seperated array of paths where to check kustomizations
+      ignore-kustomize-me:
+        required: false
+        type: boolean
+        default: false
+        description: Ignore the kustomize-me file
+    secrets:
+      private-key-robot-account:
+        required: true
+        description: The private key of the robot account
+      gh-app-id:
+        required: true
+        description: The GitHub App ID
+      gh-app-private-key:
+        required: true
+        description: The GitHub App private key
+
+jobs:
+  
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      # generate an Array from comma separated string and echo it in JSON
+      - id: generate
+        shell: bash
+        run: |
+          array=($(echo '${{ inputs.kustomize-check-paths}}' | tr ',' '\n'))
+          converted=$(jq -rcR '. / " "' <<< $array)
+          echo "::set-output name=matrix::$converted"
+
+
+  check-kustomization:
+    strategy:
+      matrix:
+        argocd-overlay-path: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    name: "Check kustomization"
+    runs-on: ubuntu-latest
+    steps:     
+      - uses: neohelden/actions-library/kustomize-check@main
+        with:
+          argocd-overlay-path: ${{ matrix.argocd-overlay-path }}
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
+          ignore-kustomize-me: true
+
+    
+  kustomize-diff:
+    if: github.event_name == 'pull_request'
+    needs:
+      - check-kustomization
+    name: "kustomize diff"
+    runs-on: ubuntu-latest
+
+    steps:     
+      - uses: neohelden/actions-library/kustomize-diff@main
+        with:
+          private-key-robot-account: ${{ secrets.private-key-robot-account }}
+
+  semantic-release:
+    needs:
+      - check-kustomization
+    name: semantic-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: neohelden/actions-library/semantic-release@main
+        with:
+          gh-app-id: ${{ secrets.gh-app-id }}
+          gh-app-private-key: ${{ secrets.gp-app-private-key }}
