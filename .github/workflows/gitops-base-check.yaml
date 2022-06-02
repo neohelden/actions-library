@@ -35,7 +35,7 @@ jobs:
           array=($(echo '${{ inputs.kustomize-check-paths}}' | tr ',' '\n'))
           converted=$(jq -rcR '. / " "' <<< $array)
           echo ================== results ==================
-          echo $converted
+          echo "$converted"
           echo ================== results ==================
           echo "::set-output name=matrix::$converted"
 
