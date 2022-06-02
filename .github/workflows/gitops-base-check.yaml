@@ -34,10 +34,15 @@ jobs:
         run: |
           array=($(echo '${{ inputs.kustomize-check-paths}}' | tr ',' '\n'))
           converted=$(jq -rcR '. / " "' <<< $array)
+          echo ================== results ==================
+          echo $converted
+          echo ================== results ==================
           echo "::set-output name=matrix::$converted"
 
 
   check-kustomization:
+    needs:
+      - prepare-matrix
     strategy:
       matrix:
         argocd-overlay-path: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
@@ -48,7 +53,7 @@ jobs:
         with:
           argocd-overlay-path: ${{ matrix.argocd-overlay-path }}
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
-          ignore-kustomize-me: true
+          ignore-kustomize-me: ${{ inputs.ignore-kustomize-me }}
 
     
   kustomize-diff:
