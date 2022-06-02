@@ -30,9 +30,11 @@ jobs:
     steps:
       # generate an Array from comma separated string and echo it in JSON
       - id: generate
+        env:
+          IFS: ','
         shell: bash
         run: |
-          array=($(echo '${{ inputs.kustomize-check-paths}}' | tr ',' '\n'))
+          array=('${{ inputs.kustomize-check-paths}}')
           converted=$(jq -rcR '. / " "' <<< $array)
           echo ================== results ==================
           echo "$converted"
