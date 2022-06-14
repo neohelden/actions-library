@@ -71,7 +71,7 @@ runs:
       id: image-tags
       shell: bash
       run: |
-        IN=${{ steps.docker_meta.outputs.tags }}
+        IN="${{ steps.docker_meta.outputs.tags }}"
         arrIN=(${IN//:/ })
         echo ::set-output name=tag-only::${arrIN[1]}
 
