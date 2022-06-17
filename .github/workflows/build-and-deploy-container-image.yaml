@@ -209,6 +209,11 @@ on:
         type: string
         required: false
         default: "shared-dev.clusters.neohelden.com"
+      argo-app-prefix:
+        description: Prefix of the argocd app ingress service
+        default: server
+        type: string
+        required: false
 
       maximize-build-space:
         type: boolean
@@ -557,6 +562,7 @@ jobs:
           argo-host: ${{ inputs.argo-host }}
           argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}
           argo-suffix: ${{ needs.deploy-pr.outputs.argo-suffix }}
+          app-prefix: ${{ inputs.argo-app-prefix }}
           github-token: ${{ secrets.github-token }}
 
   semantic-release:
