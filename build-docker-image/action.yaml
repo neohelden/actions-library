@@ -86,8 +86,8 @@ runs:
           semantic-release@18.0.0 \
           @semantic-release/exec@6.0.1
 
-        wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq
-        chmod +x /usr/bin/yq
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64 -O /usr/bin/yq
+        sudo chmod +x /usr/bin/yq
 
     - name: Extract branch name
       shell: bash
