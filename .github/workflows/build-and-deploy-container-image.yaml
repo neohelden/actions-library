@@ -478,7 +478,7 @@ jobs:
           image-tag: ${{ inputs.image-tag }}
 
       - name: Build Docker image
-        uses: neohelden/actions-library/build-docker-image@yq-permission-denied
+        uses: neohelden/actions-library/build-docker-image@main
         if: needs.prepare.outputs.docker-file-exists == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
