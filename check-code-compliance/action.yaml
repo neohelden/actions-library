@@ -40,6 +40,12 @@ runs:
         fi
         echo "::set-output name=node-project::true"
 
+    - name: Install dependencies
+      run: yarn --frozen-lockfile
+      if: steps.check_node.outputs.node-project == 'true'
+      working-directory: ./
+      shell: bash
+
     - name: Copy spelling config
       shell: bash
       run: |
@@ -69,12 +75,6 @@ runs:
         path: |
           report
           mega-linter.log
-
-    - name: Install dependencies
-      run: yarn
-      if: steps.check_node.outputs.node-project == 'true'
-      working-directory: ./
-      shell: bash
 
     - name: Load global audit-ci config
       shell: bash
