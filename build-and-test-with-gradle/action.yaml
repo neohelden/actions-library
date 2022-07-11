@@ -60,19 +60,6 @@ runs:
   using: "composite"
 
   steps:
-    # - name: Branch name
-    #   id: extract_branch
-    #   run: |
-    #     BRANCH_NAME=${{ inputs.sonar-branch-name }}
-
-    #     if [ -n "$BRANCH_NAME" ]
-    #     then
-    #       echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-    #     else
-    #       echo "##[set-output name=branch;]"
-    #     fi
-    #   shell: bash
-
     - name: Checkout
       uses: actions/checkout@v2
       with:
