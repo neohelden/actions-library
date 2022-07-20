@@ -210,7 +210,7 @@ on:
         required: false
         default: "shared-dev.clusters.neohelden.com"
       argo-app-prefix:
-        description: Prefix of the argocd app ingress service
+        description: Prefix for the ArgoCD App URL name
         default: server
         type: string
         required: false
