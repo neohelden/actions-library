@@ -567,7 +567,7 @@ jobs:
     needs:
       - build-container-image
     steps:
-      - uses: neohelden/actions-library/semantic-release@main
+      - uses: neohelden/actions-library/semantic-release@setup-ruby
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
