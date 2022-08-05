@@ -112,7 +112,7 @@ on:
       sonar-branch-name:
         type: string
         description: Branch name to by analyzed. Must be empty for PR builds.
-        default: ${{ github.event.pull_request.head.ref || github.event.ref }}
+        default: ${{ github.event.ref }}
         required: false
       sonar-sources:
         type: string
