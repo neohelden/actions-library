@@ -109,11 +109,6 @@ on:
         description: The project's unique key. Allowed characters are letters, numbers, -, _, . and :, with at least one non-digit.
         default: ${{ github.event.repository.name }}
         required: false
-      sonar-branch-name:
-        type: string
-        description: Branch name to by analyzed. Must be empty for PR builds.
-        default: ${{ github.event.ref }}
-        required: false
       sonar-sources:
         type: string
         description: Comma-separated paths to directories containing main source files.
@@ -401,7 +396,7 @@ jobs:
           sonar-project-base-dir: ${{ inputs.sonar-project-base-dir }}
           sonar-organization: ${{ inputs.sonar-organization }}
           sonar-projectKey: ${{ inputs.sonar-projectKey }}
-          sonar-branch-name: ${{ inputs.sonar-branch-name }}
+          sonar-branch-name: ${{ github.event.ref }}
           sonar-sources: ${{ inputs.sonar-sources }}
           sonar-inclusions: ${{ inputs.sonar-inclusions }}
           sonar-exclusions: ${{ inputs.sonar-exclusions }}
@@ -426,7 +421,7 @@ jobs:
           sonar-project-base-dir: ${{ inputs.sonar-project-base-dir }}
           sonar-organization: ${{ inputs.sonar-organization }}
           sonar-projectKey: ${{ inputs.sonar-projectKey }}
-          sonar-branch-name: ${{ inputs.sonar-branch-name }}
+          sonar-branch-name: ${{ github.event.pull_request.head.ref || github.event.ref }}
           default-branch: ${{ inputs.default-branch }}
 
   check-code-compliance:
