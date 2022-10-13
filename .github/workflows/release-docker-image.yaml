@@ -145,7 +145,7 @@ jobs:
 
     steps:
       - name: Notion release notes
-        uses: infinitaslearning/notion-release-notes@3d59d126c0e83a1f93a0401f7c0a195e108e0539
+        uses: infinitaslearning/notion-release-notes@b53aa54eeb7e9cff09501c976f419f15527176dc
         with:
           token: ${{ secrets.notion-token }}
           database: ${{ inputs.notion-release-database }}
