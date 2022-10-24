@@ -186,7 +186,7 @@ runs:
     - name: Generate CycloneDX SBOM
       working-directory: ./
       if: steps.check_node.outputs.node-project == 'true'
-      run: npx @cyclonedx/bom -o bom.xml
+      run: npx @cyclonedx/bom@3 -o bom.xml
       shell: bash
 
     - name: Upload SBOM
