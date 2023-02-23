@@ -317,7 +317,7 @@ jobs:
            [ "${{ github.event.pull_request.state }}" == "closed" ]; then
             isPrOpen=false
           fi
-          echo "is-pr-open=$isPrOpen" >> $GITHUB_OUTPUT
+          echo "is-pr-open=$isPrOpen" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v3
       - name: find docker file
         id: find-docker-file
