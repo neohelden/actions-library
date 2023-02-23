@@ -323,36 +323,36 @@ jobs:
         id: find-docker-file
         run: |
           if [ -f "${{ inputs.docker-file }}" ]; then
-            echo "docker-file-exists=true" >> $GITHUB_OUTPUT
+            echo "docker-file-exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "docker-file-exists=false" >> $GITHUB_OUTPUT
+            echo "docker-file-exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: find-jib-plugin
         id: find-jib-plugin
         run: |
           if [ -f "./src/main/jib/config.yml" ]; then
-            echo "jib-plugin-available=true" >> $GITHUB_OUTPUT
+            echo "jib-plugin-available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "jib-plugin-available=false" >> $GITHUB_OUTPUT
+            echo "jib-plugin-available=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: find-gradle
         id: find-gradle
         run: |
           if [ -f "./build.gradle" ]; then
-            echo "gradle-available=true" >> $GITHUB_OUTPUT
+            echo "gradle-available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "gradle-available=false" >> $GITHUB_OUTPUT
+            echo "gradle-available=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: find-package-json
         id: find-package-json
         run: |
           if [ -f "./package.json" ]; then
-            echo "package-json-available=true" >> $GITHUB_OUTPUT
+            echo "package-json-available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "package-json-available=false" >> $GITHUB_OUTPUT
+            echo "package-json-available=false" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
@@ -457,7 +457,7 @@ jobs:
         id: dockerArgs
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
-          echo "sentry-conditional-token=sentry-auth-token=${{ secrets.sentry-auth-token }}" >> $GITHUB_OUTPUT
+          echo "sentry-conditional-token=sentry-auth-token=${{ secrets.sentry-auth-token }}" >> "$GITHUB_OUTPUT"
 
       - name: Build Jib image
         uses: neohelden/actions-library/build-jib-image@main
@@ -531,7 +531,7 @@ jobs:
             abbreviation=$abbreviation"${element:0:1}"
           done
 
-          echo "argocd-suffix="-$abbreviation-${{ github.event.number }}" >> $GITHUB_OUTPUT
+          echo "argocd-suffix="-$abbreviation-${{ github.event.number }}" >> "$GITHUB_OUTPUT"
 
       - name: "Create PR App"
         run: |
