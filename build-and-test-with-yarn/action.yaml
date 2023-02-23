@@ -89,6 +89,9 @@ runs:
   using: "composite"
 
   steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "16.x"
     - name: Branch name
       id: extract_branch
       run: |
