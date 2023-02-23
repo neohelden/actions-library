@@ -74,9 +74,9 @@ runs:
       run: |
         if [ -n "${{ inputs.image-name }}" ]
         then
-          echo "::set-output name=value::$(echo ${{ inputs.image-name }})"
+          echo "value=$(echo ${{ inputs.image-name }})" >> "$GITHUB_OUTPUT"
         else
-          echo "::set-output name=value::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+          echo "value=$(echo ${{ github.repository }} | awk -F '/' '{print $2}')" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Install semantic-release
@@ -91,7 +91,7 @@ runs:
 
     - name: Extract branch name
       shell: bash
-      run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+      run: echo "short_ref=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
       id: extract_branch
 
     # This will set the version inside the container image
