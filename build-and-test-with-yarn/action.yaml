@@ -99,9 +99,9 @@ runs:
 
         if [ -n "$BRANCH_NAME" ]
         then
-          echo "##[set-output name=branch;]-Dsonar.branch.name=$(echo ${BRANCH_NAME#refs/heads/})"
+          echo "branch=-Dsonar.branch.name=$(echo ${BRANCH_NAME#refs/heads/})" >> "$GITHUB_OUTPUT"
         else
-          echo "##[set-output name=branch;]"
+          echo "branch=" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
 
@@ -120,7 +120,7 @@ runs:
           yarn --frozen-lockfile 
         else
           echo "$FILE does not exist - ignoring"
-          echo "::set-output name=no-yarn::true"
+          echo "no-yarn=true" >> "$GITHUB_OUTPUT"
         fi
       working-directory: ./
       shell: bash
@@ -143,7 +143,7 @@ runs:
         FILE=${{ inputs.eslint-configuration-file }}
         if [ -f "$FILE" ]
         then
-          echo "::set-output name=runEslint::true"
+          echo "runEslint=true" >> "$GITHUB_OUTPUT"
         fi
       working-directory: ./
       shell: bash
@@ -209,7 +209,7 @@ runs:
           echo "'jest' is not configured for this project - ignoring"
         else
           npx jest --ci --coverage --detectOpenHandles
-          echo "::set-output name=coverageExists::true"
+          echo "coverageExists=true" >> "$GITHUB_OUTPUT"
         fi
       working-directory: ./
       shell: bash

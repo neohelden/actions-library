@@ -74,7 +74,7 @@ runs:
 
         output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
         escaped_output=${output//$'\n'/'%0A'}
-        echo "::set-output name=diff::$escaped_output"
+        echo "diff=$escaped_output" >> "$GITHUB_OUTPUT"
         printf "\n\nOutput: %s\n" "$escaped_output"
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
