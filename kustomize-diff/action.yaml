@@ -74,7 +74,9 @@ runs:
 
         output=$(printf "\`\`\`diff\n%s\n\`\`\`\n" "$diff")
         escaped_output=${output}
-        echo "diff=$escaped_output" >> "$GITHUB_OUTPUT"
+        echo "diff<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$escaped_output" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
         printf "\n\nOutput: %s\n" "$escaped_output"
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
