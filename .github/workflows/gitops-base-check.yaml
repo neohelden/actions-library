@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: neohelden/actions-library/kustomize-diff@main
+      - uses: neohelden/actions-library/kustomize-diff@fix-kustomize-diff
         with:
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
 
