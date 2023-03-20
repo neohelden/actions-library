@@ -72,9 +72,11 @@ runs:
         diff=$(git diff --no-index "$TMP_DIR/${{ inputs.base-ref }}" "$TMP_DIR/${{ inputs.head-ref }}")
         set -e
 
-        output=$(printf "\`\`\` diff\n%s\n\`\`\`\n" "$diff")
-        escaped_output=${output//$'\n'/'%0A'}
-        echo "diff=$escaped_output" >> "$GITHUB_OUTPUT"
+        output=$(printf "\`\`\`diff\n%s\n\`\`\`\n" "$diff")
+        escaped_output=${output}
+        echo "diff<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$escaped_output" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
         printf "\n\nOutput: %s\n" "$escaped_output"
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
