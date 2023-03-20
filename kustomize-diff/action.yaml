@@ -73,7 +73,7 @@ runs:
         set -e
 
         output=$(printf "\`\`\`diff\n%s\n\`\`\`\n" "$diff")
-        escaped_output=${output//$'\n'/'%0A'}
+        escaped_output=${output}
         echo "diff=$escaped_output" >> "$GITHUB_OUTPUT"
         printf "\n\nOutput: %s\n" "$escaped_output"
       env:
