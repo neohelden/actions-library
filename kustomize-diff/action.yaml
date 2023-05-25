@@ -41,7 +41,7 @@ runs:
       run: |
         TMP_DIR="$(mktemp -d)"
 
-        kustomizations=$(find . -maxdepth 4 -name kustomization.yaml -exec dirname {} \; | sort | uniq)
+        kustomizations=$(find . -maxdepth 5 -name kustomization.yaml -exec dirname {} \; | sort | uniq)
 
         function build {
           local ref="$1"
