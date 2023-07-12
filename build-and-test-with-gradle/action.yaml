@@ -94,7 +94,7 @@ runs:
         check_name: Test Results
         report_individual_runs: "true"
         files: |
-          **/build/test-results/*/*.xml
+          **/build/test-results/**/*.xml
           **/build/integTest-results/*.xml
 
     - name: Cache SonarCloud packages
