@@ -125,6 +125,17 @@ runs:
       working-directory: ./
       shell: bash
 
+    - name: Build Protobuf
+      shell: bash
+      working-directory: ./
+      run: |
+        if [ yarn run | grep protoc ]
+        then
+          yarn run protoc
+        else
+          echo "No protobuf configured - ignoring"
+        fi
+
     - name: Prettier
       if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
