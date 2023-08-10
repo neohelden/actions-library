@@ -129,11 +129,11 @@ runs:
       shell: bash
       working-directory: ./
       run: |
-        if [ yarn run | grep protoc ]
+        if [ $(jq -r .scripts.protoc package.json) = "null" ] && exit
         then
-          yarn run protoc
+          echo "'protoc' is not configured for this project - ignoring"
         else
-          echo "No protobuf configured - ignoring"
+          yarn protoc
         fi
 
     - name: Prettier
