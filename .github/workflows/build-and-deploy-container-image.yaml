@@ -390,8 +390,8 @@ jobs:
       - id: generate_token
         uses: tibdex/github-app-token@v1.4.0
         with:
-          app_id: ${{ inputs.gh-app-id }}
-          private_key: ${{ inputs.gh-app-private-key }}
+          app_id: ${{ secrets.gh-app-id }}
+          private_key: ${{ secrets.gh-app-private-key }}
 
       - uses: neohelden/actions-library/build-and-test-with-yarn@add-protoc
         if: needs.prepare.outputs.package-json-available == 'true'
