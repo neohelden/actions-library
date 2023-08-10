@@ -110,6 +110,7 @@ runs:
       with:
         fetch-depth: 0 ## fix shallow clone detected by SonarCloud.io
         ref: ${{ inputs.checkout-ref }}
+        submodules: recursive
 
     - name: Resolve yarn dependencies
       id: yarn-deps
