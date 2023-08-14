@@ -135,7 +135,7 @@ runs:
         then
           echo "'protoc' is not configured for this project - ignoring"
         else
-          ls -Alh src/protos
+          ls -Alh src/
           yarn protoc
         fi
 
