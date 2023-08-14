@@ -131,7 +131,7 @@ runs:
       shell: bash
       working-directory: ./
       run: |
-        if [ $(jq -r .scripts.protoc package.json) = "null" ] && exit
+        if [ "$(jq -r .scripts.protoc package.json)" = "null" ] && exit
         then
           echo "'protoc' is not configured for this project - ignoring"
         else
