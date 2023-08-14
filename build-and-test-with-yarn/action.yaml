@@ -135,7 +135,7 @@ runs:
         then
           echo "'protoc' is not configured for this project - ignoring"
         else
-          sudo chown -R $(whoami) .
+          chown -R $(whoami) .
           yarn protoc
         fi
 
