@@ -387,11 +387,17 @@ jobs:
           apt-get update
           apt-get install -y bash jq
 
+      - id: generate_token
+        uses: tibdex/github-app-token@v1.4.0
+        with:
+          app_id: ${{ secrets.gh-app-id }}
+          private_key: ${{ secrets.gh-app-private-key }}
+
       - uses: neohelden/actions-library/build-and-test-with-yarn@main
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
-          github-token: ${{ secrets.github-token }}
+          github-token: ${{ steps.generate_token.outputs.token }}
           checkout-ref: ${{ inputs.checkout-ref }}
           sonar-project-base-dir: ${{ inputs.sonar-project-base-dir }}
           sonar-organization: ${{ inputs.sonar-organization }}

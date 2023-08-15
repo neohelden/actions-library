@@ -106,10 +106,12 @@ runs:
       shell: bash
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0 ## fix shallow clone detected by SonarCloud.io
         ref: ${{ inputs.checkout-ref }}
+        submodules: "true"
+        token: ${{ inputs.github-token }}
 
     - name: Resolve yarn dependencies
       id: yarn-deps
@@ -124,6 +126,18 @@ runs:
         fi
       working-directory: ./
       shell: bash
+
+    - name: Build Protobuf
+      shell: bash
+      working-directory: ./
+      run: |
+        if [ "$(jq -r .scripts.protoc package.json)" = "null" ] && exit
+        then
+          echo "'protoc' is not configured for this project - ignoring"
+        else
+          chown -R $(whoami) .
+          yarn protoc
+        fi
 
     - name: Prettier
       if: steps.yarn-deps.outputs.no-yarn != 'true'
