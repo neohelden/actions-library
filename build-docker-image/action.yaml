@@ -59,6 +59,10 @@ inputs:
     description: Secret files passed to docker-build-push-action in yaml multiline format
     required: false
     default: ""
+  github-token:
+    description: Token used for accessing GitHub.com
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: "composite"
@@ -68,6 +72,8 @@ runs:
       with:
         fetch-depth: 0
         ref: ${{ inputs.checkout-ref }}
+        submodules: "true"
+        token: ${{ inputs.github-token }}
 
     - shell: bash
       id: image-name

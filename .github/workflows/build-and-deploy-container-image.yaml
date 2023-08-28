@@ -465,6 +465,12 @@ jobs:
         run: |
           echo "sentry-conditional-token=sentry-auth-token=${{ secrets.sentry-auth-token }}" >> "$GITHUB_OUTPUT"
 
+      - id: generate_token
+        uses: tibdex/github-app-token@v1.4.0
+        with:
+          app_id: ${{ secrets.gh-app-id }}
+          private_key: ${{ secrets.gh-app-private-key }}
+
       - name: Build Jib image
         uses: neohelden/actions-library/build-jib-image@main
         if: needs.prepare.outputs.jib-is-enabled == 'true'
@@ -501,6 +507,7 @@ jobs:
             ${{ steps.dockerArgs.outputs.sentry-conditional-token }}
             ${{ secrets.docker-push-build-secrets }}
           docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
+          github-token: ${{ steps.generate_token.outputs.token }}
 
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   deploy-pr:
