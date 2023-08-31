@@ -84,7 +84,7 @@ jobs:
           docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.release.tag_name }}
           docker push ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ inputs.image-name }}:latest
 
-      - uses: LoveToKnow/slackify-markdown-action@v1.0.0
+      - uses: LoveToKnow/slackify-markdown-action@v1.0.2
         id: slackify
         with:
           text: ${{ github.event.release.body }}
