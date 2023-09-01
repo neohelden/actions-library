@@ -105,6 +105,11 @@ runs:
         fi
       shell: bash
 
+    - name: Setup OPA
+      uses: open-policy-agent/setup-opa@v2
+      with:
+        version: latest
+
     - name: Checkout
       uses: actions/checkout@v3
       with:
