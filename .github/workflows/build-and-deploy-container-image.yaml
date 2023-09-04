@@ -393,7 +393,7 @@ jobs:
           app_id: ${{ secrets.gh-app-id }}
           private_key: ${{ secrets.gh-app-private-key }}
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@opa-glibc
+      - uses: neohelden/actions-library/build-and-test-with-yarn@main
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
