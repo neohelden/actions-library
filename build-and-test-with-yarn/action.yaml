@@ -109,6 +109,7 @@ runs:
       uses: open-policy-agent/setup-opa@v2
       with:
         version: latest
+        static: "true"
 
     - name: Checkout
       uses: actions/checkout@v3
