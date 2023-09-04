@@ -104,6 +104,13 @@ runs:
           echo "branch=" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
+    
+    - name: Install GLIBC
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libc6
+      shell: bash
 
     - name: Setup OPA
       uses: open-policy-agent/setup-opa@v2
