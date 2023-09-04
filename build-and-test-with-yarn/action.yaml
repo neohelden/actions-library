@@ -108,8 +108,8 @@ runs:
     - name: Install GLIBC
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libc6
+        apt-get update
+        apt-get install -y --no-install-recommends libc6
       shell: bash
 
     - name: Setup OPA
