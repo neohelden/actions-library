@@ -156,7 +156,7 @@ runs:
       shell: bash
       if: steps.check_node.outputs.node-project == 'true'
       run: |
-        npx license-checker-rseidelsohn \
+        npx license-checker-rseidelsohn@4.2.5 \
             --onlyAllow="Python-2.0; \
               MIT; \
               Apache-2.0; \
