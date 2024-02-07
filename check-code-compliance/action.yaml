@@ -173,6 +173,7 @@ runs:
               CC-BY-4.0; \
               Unicode-DFS-2016; \
               BlueOak-1.0.0; \
+              MPL-2.0; \
               VOL" \
             --excludePackages="@neohelden/eslint-config;${{ inputs.license-exclude-packages }}" \
             --excludePrivatePackages \
