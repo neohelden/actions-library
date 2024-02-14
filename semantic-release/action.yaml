@@ -161,6 +161,7 @@ runs:
 
         if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ "${{ inputs.dev-branch }}" != "${{ inputs.main-branch }}" ]; then
           gem install highline -v 2.1.0
+          gem install faraday -v 2.8.1
           gem install faraday-net_http -v 3.0.2
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
