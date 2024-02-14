@@ -121,7 +121,7 @@ runs:
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.7 # Not needed with a .ruby-version file
+        ruby-version: 3 # Not needed with a .ruby-version file
         bundler-cache: true
 
     - name: Create PR for next release
@@ -160,9 +160,6 @@ runs:
         EOF
 
         if [ $GITHUB_EVENT_NAME = "push" ] && [ ${GITHUB_REF#refs/*/} = "${{ inputs.dev-branch }}" ] && [ "${{ inputs.dev-branch }}" != "${{ inputs.main-branch }}" ]; then
-          gem install highline -v 2.1.0
-          gem install faraday -v 2.8.1
-          gem install faraday-net_http -v 3.0.2
           gem install --no-document git-pr-release
           git-pr-release --no-fetch --squashed
         fi
