@@ -178,7 +178,7 @@ on:
         type: string
         description: Comma separated list of extra plugins to load for the sematic-release package
         required: false
-      release-extend-configuration: 
+      release-extend-configuration:
         type: string
         description: An npm package to extend the configuration with
         required: false
@@ -585,7 +585,7 @@ jobs:
     needs:
       - build-container-image
     steps:
-      - uses: neohelden/actions-library/semantic-release@main
+      - uses: neohelden/actions-library/semantic-release@add-extends
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}

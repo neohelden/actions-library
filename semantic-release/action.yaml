@@ -25,7 +25,7 @@ inputs:
   release-extra-plugins:
     description: Comma separated list of extra plugins to load for the sematic-release package
     required: false
-  release-extend-configuration: 
+  release-extend-configuration:
     description: An npm package to extend the configuration with
     required: false
     default: ""
