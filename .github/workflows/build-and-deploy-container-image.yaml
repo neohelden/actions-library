@@ -178,6 +178,10 @@ on:
         type: string
         description: Comma separated list of extra plugins to load for the sematic-release package
         required: false
+      release-extend-configuration: 
+        type: string
+        description: An npm package to extend the configuration with
+        required: false
       release-labels:
         type: string
         description: A comma seperated list of labels to add to a release PR
@@ -595,3 +599,4 @@ jobs:
           release-labels: ${{ inputs.release-labels }}
           auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}
           main-branch: ${{ inputs.main-branch }}
+          release-extend-configuration: ${{ inputs.release-extend-configuration }}

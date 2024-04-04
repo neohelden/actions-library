@@ -25,6 +25,10 @@ inputs:
   release-extra-plugins:
     description: Comma separated list of extra plugins to load for the sematic-release package
     required: false
+  release-extend-configuration: 
+    description: An npm package to extend the configuration with
+    required: false
+    default: ""
   npm-automation-token:
     description: Automation token for NPM to publish packages
     required: false
@@ -55,7 +59,7 @@ runs:
 
     - uses: actions/setup-node@v2.4.0
       with:
-        node-version: "14"
+        node-version: "20"
 
     - run: sudo apt-get install -y jq
       shell: bash
@@ -109,8 +113,13 @@ runs:
         for PLUGIN in ${EXTRA_PLUGINS[@]}; do
           PLUGINS="$PLUGINS,$PLUGIN";
         done
+        EXTEND_CONFIGURATION=""
+        if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
+          EXTEND_CONFIGURATION="-e ${{ inputs.release-extend-configuration }}"
+        fi
         semantic-release \
           --branches ${{ inputs.release-branch }} \
+          $EXTEND_CONFIGURATION \
           --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
           --tag-format ${{ inputs.release-prefix }}\${version} \
           --debug true
