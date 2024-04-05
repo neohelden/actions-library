@@ -88,11 +88,14 @@ runs:
           @semantic-release/github@8 \
           @semantic-release/exec@6
 
-    - name: Install ${{ inputs.extra-plugins }}
+    - name: Install ${{ inputs.extra-plugins }} ${{ inputs.release-extend-configuration }}
       shell: bash
       run: |
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
+        if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
+          PLUGINS+=(${{ inputs.release-extend-configuration }})
+        fi
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
         done
