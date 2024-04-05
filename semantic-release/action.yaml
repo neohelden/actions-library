@@ -127,7 +127,7 @@ runs:
         CONFIGURATIONS=(${{ inputs.release-extend-configuration }},${{ inputs.release-extend-configuration-packages }})
         EXTEND_CONFIGURATION=""
         for CONFIGURATION in ${CONFIGURATIONS[@]}; do
-          EXTEND_CONFIGURATION="-e $CONFIGURATION";
+          EXTEND_CONFIGURATION="-e ${CONFIGURATION%%@*}";
         done
         for FOLDER in ${{ inputs.release-folders }}; do
           cd $FOLDER;
