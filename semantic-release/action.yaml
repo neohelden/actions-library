@@ -86,7 +86,7 @@ runs:
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
         done
-        
+
     - name: Build the Code
       run: |
         yarn config set ignore-scripts true
@@ -176,7 +176,7 @@ runs:
             ]
         EOF
 
-        DEBUG=* npx semantic-release
+        DEBUG=* semantic-release
 
         cat <<EOF > template.erb
         Release $(cat version.txt)
