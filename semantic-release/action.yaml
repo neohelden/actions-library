@@ -102,7 +102,11 @@ runs:
         CONFIGS=(${{ inputs.release-extend-configuration-packages }})
         for CONFIG in ${CONFIGS[@]}; do
           echo "Installing $CONFIG"
-          npm install -D ${CONFIG};
+          if [ -f "package-lock.json" ]; then
+            npm install -D ${CONFIG};
+          else 
+            yarn add -D ${CONFIG};
+          fi
         done
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
