@@ -165,6 +165,7 @@ runs:
         branches: ["${GITHUB_REF#refs/*/}${DEFAULT_BRANCH}"]
         tagFormat: '${{ inputs.release-prefix }}\${version}'
         dryRun: true
+        debug: true
         ci: true
         plugins:
           - '@semantic-release/commit-analyzer'
@@ -176,7 +177,7 @@ runs:
             ]
         EOF
 
-        DEBUG=* semantic-release
+        semantic-release
 
         cat <<EOF > template.erb
         Release $(cat version.txt)
