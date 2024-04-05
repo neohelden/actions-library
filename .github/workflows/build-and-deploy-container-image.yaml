@@ -192,6 +192,10 @@ on:
         description: A comma seperated list of labels to add to a release PR
         default: release
         required: false
+      release-extend-configuration-packages:
+        type: string
+        description: Comma separated list of npm packages to extend the configuration with
+        required: false
 
       argo-host:
         description: ArgoCd host
@@ -606,3 +610,4 @@ jobs:
           main-branch: ${{ inputs.main-branch }}
           release-extend-configuration: ${{ inputs.release-extend-configuration }}
           release-folders: ${{ inputs.release-folders }}
+          release-extend-configuration-packages: ${{ inputs.release-extend-configuration-packages }}
