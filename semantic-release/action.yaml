@@ -161,10 +161,6 @@ runs:
           DEFAULT_BRANCH=,"${{ github.event.repository.default_branch }}"
         fi
 
-        if [ -d node_modules ]; then
-          rm -rf node_modules
-        fi
-
         cat <<EOF > .releaserc.yaml
         branches: ["${GITHUB_REF#refs/*/}${DEFAULT_BRANCH}"]
         tagFormat: '${{ inputs.release-prefix }}\${version}'
@@ -181,7 +177,7 @@ runs:
             ]
         EOF
 
-        npx semantic-release --debug
+        DEBUG=* npx semantic-release
 
         cat <<EOF > template.erb
         Release $(cat version.txt)
