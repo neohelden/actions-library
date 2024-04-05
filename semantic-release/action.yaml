@@ -140,7 +140,7 @@ runs:
             $EXTEND_CONFIGURATION \
             --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
             --tag-format ${{ inputs.release-prefix }}\${version} \
-            --debug true;
+            --debug true &2>1;
           cd ..;
         done
       env:
