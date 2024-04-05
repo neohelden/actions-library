@@ -70,9 +70,11 @@ runs:
 
     - name: Build the Code
       run: |
+        yarn config set ignore-scripts true
         FILE=${{ inputs.tsconfig-build-file }}
 
-        if [ -f package.json ]
+        # Extensions are only loadable from this package
+        if [ -f package.json ] && [ ! -z "${{ inputs.release-extend-configuration }}"]
         then 
           yarn --frozen-lockfile -D;
         fi
@@ -99,7 +101,6 @@ runs:
     - name: Install ${{ inputs.extra-plugins }}
       shell: bash
       run: |
-        yarn config set ignore-scripts true
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
