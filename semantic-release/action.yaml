@@ -70,6 +70,17 @@ runs:
 
     - name: Build the Code
       run: |
+        echo ":::: NPM SETTINGS"
+        npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        node --version
+        npm --version
+        node -e 'child_process.spawnSync("npm", ["--version"], { stdio: "inherit" });'
+        node -e 'child_process.spawnSync("which", ["npm"], { stdio: "inherit" });'
+        npm i npm@6 --global
+        npm --version
+        node -e 'child_process.spawnSync("npm", ["--version"], { stdio: "inherit" });'
+        node -e 'child_process.spawnSync("which", ["npm"], { stdio: "inherit" });'
+
         yarn config set ignore-scripts true
         FILE=${{ inputs.tsconfig-build-file }}
 
