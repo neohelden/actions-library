@@ -29,6 +29,10 @@ inputs:
     description: An npm package to extend the configuration with
     required: false
     default: ""
+  release-folders: 
+    description: "Folders to run semantic-release in"
+    default: "."
+    required: false
   npm-automation-token:
     description: Automation token for NPM to publish packages
     required: false
@@ -120,12 +124,16 @@ runs:
         if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
           EXTEND_CONFIGURATION="-e ${{ inputs.release-extend-configuration }}"
         fi
-        semantic-release \
-          --branches ${{ inputs.release-branch }} \
-          $EXTEND_CONFIGURATION \
-          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-          --tag-format ${{ inputs.release-prefix }}\${version} \
-          --debug true
+        for FOLDER in ${{ inputs.release-folders }}; do
+          cd $FOLDER;
+          semantic-release \
+            --branches ${{ inputs.release-branch }} \
+            $EXTEND_CONFIGURATION \
+            --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
+            --tag-format ${{ inputs.release-prefix }}\${version} \
+            --debug true;
+          cd ..;
+        done
       env:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
