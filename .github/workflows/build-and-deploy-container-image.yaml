@@ -182,6 +182,11 @@ on:
         type: string
         description: An npm package to extend the configuration with
         required: false
+      release-folders: 
+        type: string
+        description: "Folders to run semantic-release in"
+        default: "."
+        required: false
       release-labels:
         type: string
         description: A comma seperated list of labels to add to a release PR
@@ -600,3 +605,4 @@ jobs:
           auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}
           main-branch: ${{ inputs.main-branch }}
           release-extend-configuration: ${{ inputs.release-extend-configuration }}
+          release-folders: ${{ inputs.release-folders }}
