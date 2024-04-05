@@ -97,8 +97,9 @@ runs:
 
     - name: Install ${{ inputs.extra-plugins }} ${{ inputs.release-extend-configuration-packages }}
       shell: bash
-      working-directory: /tmp/semantic-release-extends
       run: |
+        mkdir /tmp/semantic-release-extends
+        cd /tmp/semantic-release-extends
         yarn config set ignore-scripts true
         IFS=,
         CONFIGS=(${{ inputs.release-extend-configuration-packages }})
