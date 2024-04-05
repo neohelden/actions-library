@@ -98,6 +98,7 @@ runs:
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
+          echo "Installing ${{ inputs.release-extend-configuration }}";
           sudo npm install -g ${{ inputs.release-extend-configuration }};
         fi
         for PLUGIN in ${PLUGINS[@]}; do
