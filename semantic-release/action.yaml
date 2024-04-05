@@ -29,9 +29,6 @@ inputs:
     description: An npm package to extend the configuration with
     required: false
     default: ""
-  release-extend-configuration-packages:
-    description: Comma separated list of npm packages to extend the configuration with
-    required: false
   release-folders: 
     description: "Folders to run semantic-release in"
     default: "."
@@ -75,9 +72,13 @@ runs:
       run: |
         FILE=${{ inputs.tsconfig-build-file }}
 
+        if [ -f package.json ]
+        then 
+          yarn --frozen-lockfile -D;
+        fi
+
         if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
         then
-          yarn --frozen-lockfile -D;
           npx tsc -p "$FILE"
         else
           echo "Project is private or $FILE does not exist - ignoring"
@@ -95,18 +96,11 @@ runs:
           @semantic-release/github@10 \
           @semantic-release/exec@6
 
-    - name: Install ${{ inputs.extra-plugins }} ${{ inputs.release-extend-configuration-packages }}
+    - name: Install ${{ inputs.extra-plugins }}
       shell: bash
       run: |
-        mkdir /tmp/semantic-release-extends
-        cd /tmp/semantic-release-extends
         yarn config set ignore-scripts true
         IFS=,
-        CONFIGS=(${{ inputs.release-extend-configuration-packages }})
-        for CONFIG in ${CONFIGS[@]}; do
-          echo "Installing $CONFIG"
-          yarn add -D ${CONFIG};
-        done
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
@@ -128,14 +122,13 @@ runs:
         for PLUGIN in ${EXTRA_PLUGINS[@]}; do
           PLUGINS="$PLUGINS,$PLUGIN";
         done
-        CONFIGURATIONS=(${{ inputs.release-extend-configuration }},${{ inputs.release-extend-configuration-packages }})
+        CONFIGURATIONS=(${{ inputs.release-extend-configuration }})
         EXTEND_CONFIGURATION=""
         for CONFIGURATION in ${CONFIGURATIONS[@]}; do
           if [ -z "$CONFIGURATION" ]; then
             continue;
           fi
-          MAIN_FILE=$(jq -r .main /tmp/semantic-release-extends/node_modules/${CONFIGURATION%%@*}/package.json)
-          EXTEND_CONFIGURATION="-e /tmp/semantic-release-extends/node_modules/${CONFIGURATION%%@*}/$MAIN_FILE $EXTEND_CONFIGURATION";
+          EXTEND_CONFIGURATION="-e ${CONFIGURATION} $EXTEND_CONFIGURATION";
         done
         for FOLDER in ${{ inputs.release-folders }}; do
           cd $FOLDER;
