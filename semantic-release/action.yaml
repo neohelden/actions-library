@@ -97,10 +97,6 @@ runs:
       run: |
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
-        if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
-          echo "Installing ${{ inputs.release-extend-configuration }}";
-          sudo npm install -g ${{ inputs.release-extend-configuration }};
-        fi
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
         done
@@ -121,10 +117,11 @@ runs:
         for PLUGIN in ${EXTRA_PLUGINS[@]}; do
           PLUGINS="$PLUGINS,$PLUGIN";
         done
+        CONFIGURATIONS=(${{ inputs.release-extend-configuration }})
         EXTEND_CONFIGURATION=""
-        if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
-          EXTEND_CONFIGURATION="-e ${{ inputs.release-extend-configuration }}"
-        fi
+        for CONFIGURATION in ${CONFIGURATIONS[@]}; do
+          EXTEND_CONFIGURATION="-e $CONFIGURATION";
+        done
         for FOLDER in ${{ inputs.release-folders }}; do
           cd $FOLDER;
           semantic-release \
