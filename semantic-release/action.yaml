@@ -61,7 +61,7 @@ runs:
         fetch-depth: 0
         ref: ${{ inputs.checkout-ref }}
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v4.0.2
       with:
         node-version: "20"
 
@@ -98,7 +98,7 @@ runs:
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         if [ "${{ inputs.release-extend-configuration }}" != "" ]; then
-          PLUGINS+=(${{ inputs.release-extend-configuration }})
+          sudo npm install -g ${{ inputs.release-extend-configuration }};
         fi
         for PLUGIN in ${PLUGINS[@]}; do
           sudo npm install -g ${PLUGIN};
