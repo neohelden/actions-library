@@ -131,7 +131,8 @@ runs:
         CONFIGURATIONS=(${{ inputs.release-extend-configuration }},${{ inputs.release-extend-configuration-packages }})
         EXTEND_CONFIGURATION=""
         for CONFIGURATION in ${CONFIGURATIONS[@]}; do
-          EXTEND_CONFIGURATION="-e /tmp/semantic-release-extends/node_modules/${CONFIGURATION%%@*}";
+          MAIN_FILE=$(jq -r .main /tmp/semantic-release-extends/node_modules/${CONFIGURATION%%@*}/package.json)
+          EXTEND_CONFIGURATION="-e $MAIN_FILE $EXTEND_CONFIGURATION";
         done
         for FOLDER in ${{ inputs.release-folders }}; do
           cd $FOLDER;
