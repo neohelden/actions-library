@@ -68,6 +68,25 @@ runs:
     - run: sudo apt-get install -y jq
       shell: bash
 
+    - name: Install semantic-release
+      shell: bash
+      run: |
+        sudo npm install -g \
+          semantic-release@23 \
+          @semantic-release/git@10 \
+          @semantic-release/release-notes-generator@13 \
+          @semantic-release/github@10 \
+          @semantic-release/exec@6
+
+    - name: Install ${{ inputs.extra-plugins }}
+      shell: bash
+      run: |
+        IFS=,
+        PLUGINS=(${{inputs.release-extra-plugins}})
+        for PLUGIN in ${PLUGINS[@]}; do
+          sudo npm install -g ${PLUGIN};
+        done
+        
     - name: Build the Code
       run: |
         yarn config set ignore-scripts true
@@ -87,25 +106,6 @@ runs:
         fi
       working-directory: ./
       shell: bash
-
-    - name: Install semantic-release
-      shell: bash
-      run: |
-        sudo npm install -g \
-          semantic-release@23 \
-          @semantic-release/git@10 \
-          @semantic-release/release-notes-generator@13 \
-          @semantic-release/github@10 \
-          @semantic-release/exec@6
-
-    - name: Install ${{ inputs.extra-plugins }}
-      shell: bash
-      run: |
-        IFS=,
-        PLUGINS=(${{inputs.release-extra-plugins}})
-        for PLUGIN in ${PLUGINS[@]}; do
-          sudo npm install -g ${PLUGIN};
-        done
 
     # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
     - id: generate_token
