@@ -101,7 +101,8 @@ runs:
         IFS=,
         CONFIGS=(${{ inputs.release-extend-configuration-packages }})
         for CONFIG in ${CONFIGS[@]}; do
-          sudo npm install ${CONFIG};
+          echo "Installing $CONFIG"
+          npm install -D ${CONFIG};
         done
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
