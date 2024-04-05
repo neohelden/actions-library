@@ -137,7 +137,7 @@ runs:
             --branches ${{ inputs.release-branch }} \
             $EXTEND_CONFIGURATION \
             --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-            --tag-format ${{ inputs.release-prefix }}\${version}; \
+            --tag-format ${{ inputs.release-prefix }}\${version} \
             --debug true;
           cd ..;
         done
