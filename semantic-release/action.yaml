@@ -147,6 +147,7 @@ runs:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         NPM_TOKEN: ${{ inputs.npm-automation-token }}
+        DEBUG: "*"
 
     - uses: ruby/setup-ruby@v1
       with:
