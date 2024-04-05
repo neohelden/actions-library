@@ -166,7 +166,6 @@ runs:
         tagFormat: '${{ inputs.release-prefix }}\${version}'
         dryRun: true
         ci: true
-        debug: true
         plugins:
           - '@semantic-release/commit-analyzer'
           - [
