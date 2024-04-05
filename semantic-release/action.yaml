@@ -97,16 +97,14 @@ runs:
 
     - name: Install ${{ inputs.extra-plugins }} ${{ inputs.release-extend-configuration-packages }}
       shell: bash
+      working-directory: /tmp/semantic-release-extends
       run: |
+        yarn config set ignore-scripts true
         IFS=,
         CONFIGS=(${{ inputs.release-extend-configuration-packages }})
         for CONFIG in ${CONFIGS[@]}; do
           echo "Installing $CONFIG"
-          if [ -f "package-lock.json" ]; then
-            npm install -D ${CONFIG};
-          else 
-            yarn add -D ${CONFIG};
-          fi
+          yarn add -D ${CONFIG};
         done
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
@@ -132,7 +130,7 @@ runs:
         CONFIGURATIONS=(${{ inputs.release-extend-configuration }},${{ inputs.release-extend-configuration-packages }})
         EXTEND_CONFIGURATION=""
         for CONFIGURATION in ${CONFIGURATIONS[@]}; do
-          EXTEND_CONFIGURATION="-e ${CONFIGURATION%%@*}";
+          EXTEND_CONFIGURATION="-e /tmp/semantic-release-extends/${CONFIGURATION%%@*}";
         done
         for FOLDER in ${{ inputs.release-folders }}; do
           cd $FOLDER;
