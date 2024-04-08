@@ -235,8 +235,19 @@ runs:
       working-directory: ./
       shell: bash
 
+    - name: Check if ${{ inputs.sonar-sources }} exists
+      id: check_src
+      run: |
+        if [ -d "${{ inputs.sonar-sources }}" ]
+        then
+          echo "srcExists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "srcExists=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
     - name: Prepare SonarCloud
-      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true' && steps.check_src.outputs.srcExists == 'true'
       run: |
         curl --include \
           --request POST \
@@ -254,7 +265,7 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
-      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true' && steps.check_src.outputs.srcExists == 'true'
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
