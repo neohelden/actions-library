@@ -402,7 +402,7 @@ jobs:
           app_id: ${{ secrets.gh-app-id }}
           private_key: ${{ secrets.gh-app-private-key }}
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: neohelden/actions-library/build-and-test-with-yarn@add-extends
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
