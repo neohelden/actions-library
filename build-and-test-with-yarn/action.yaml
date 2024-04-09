@@ -246,6 +246,11 @@ runs:
         fi
       shell: bash
 
+    - name: Convert OPA coverage files to SonarCloud Coverage
+      run: |
+        find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 echo python opa_coverage_to_sonarcloud.py
+      shell: bash
+
     - name: Prepare SonarCloud
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true' && steps.check_src.outputs.srcExists == 'true'
       run: |
