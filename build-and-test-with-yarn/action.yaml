@@ -237,8 +237,7 @@ runs:
 
     - name: Convert OPA coverage files to SonarCloud Coverage
       run: |
-        cp ${{ github.action_path }}/opa_coverage_to_sonarcloud.py .
-        find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 python ${{ github.action_path }}/opa_coverage_to_sonarcloud.py
+        find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 python ${GITHUB_ACTION_PATH}/opa_coverage_to_sonarcloud.py
       shell: bash
 
     - name: Prepare SonarCloud
