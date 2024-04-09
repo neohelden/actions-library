@@ -235,11 +235,6 @@ runs:
       working-directory: ./
       shell: bash
 
-    - name: Convert OPA coverage files to SonarCloud Coverage
-      run: |
-        find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 python3 ${GITHUB_ACTION_PATH}/opa_coverage_to_sonarcloud.py
-      shell: bash
-
     - name: Prepare SonarCloud
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       run: |
@@ -276,7 +271,6 @@ runs:
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
           -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
-          -Dsonar.coverageReportPaths=services/neap-speech-service/coverage.xml
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
