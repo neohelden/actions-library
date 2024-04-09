@@ -235,24 +235,15 @@ runs:
       working-directory: ./
       shell: bash
 
-    - name: Check if ${{ inputs.sonar-sources }} exists
-      id: check_src
-      run: |
-        if [ -d "${{ inputs.sonar-sources }}" ]
-        then
-          echo "srcExists=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "srcExists=false" >> "$GITHUB_OUTPUT"
-        fi
-      shell: bash
-
     - name: Convert OPA coverage files to SonarCloud Coverage
       run: |
+        ls -Alh ${{ github.action_path }}
         find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 python ${{ github.action_path }}/opa_coverage_to_sonarcloud.py
       shell: bash
+      continue-on-error: true
 
     - name: Prepare SonarCloud
-      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true' && steps.check_src.outputs.srcExists == 'true'
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       run: |
         curl --include \
           --request POST \
@@ -270,7 +261,7 @@ runs:
       shell: bash
 
     - name: SonarCloud Scan
-      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true' && steps.check_src.outputs.srcExists == 'true'
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
       uses: sonarsource/sonarcloud-github-action@master
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
