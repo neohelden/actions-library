@@ -237,10 +237,9 @@ runs:
 
     - name: Convert OPA coverage files to SonarCloud Coverage
       run: |
-        ls -Alh ${{ github.action_path }}
+        cp ${{ github.action_path }}/opa_coverage_to_sonarcloud.py .
         find . -name 'coverage.json' | sed -e "p;s/json/xml/" | xargs -n2 python ${{ github.action_path }}/opa_coverage_to_sonarcloud.py
       shell: bash
-      continue-on-error: true
 
     - name: Prepare SonarCloud
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
