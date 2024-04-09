@@ -388,7 +388,7 @@ jobs:
       NPQ_PASS: Neolut1on
       NPQ_USER: neo
     container:
-      image: node:16
+      image: node:20
 
     steps:
       - name: Install devDeps
