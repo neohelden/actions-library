@@ -276,6 +276,7 @@ runs:
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
           -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
+          -Dsonar.coverageReportPaths=services/**/coverage.xml
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
