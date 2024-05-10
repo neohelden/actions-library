@@ -177,7 +177,7 @@ runs:
             ]
         EOF
 
-        semantic-release
+        semantic-release --debug
 
         cat <<EOF > template.erb
         Release $(cat version.txt)
