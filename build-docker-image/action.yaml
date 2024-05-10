@@ -190,7 +190,10 @@ runs:
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:nightly
           ${{ steps.docker_meta.outputs.tags }}
           ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:${{ inputs.image-tag }}
-        cache-to: type=inline
+          ${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:buildcache
+        cache-to: |
+          type=inline
+          type=registry,ref=${{ inputs.image-registry }}/${{ inputs.registry-org }}/${{ steps.image-name.outputs.value }}:buildcache,mode=max
         platforms: ${{ inputs.platforms }}
         load: true
         pull: true
