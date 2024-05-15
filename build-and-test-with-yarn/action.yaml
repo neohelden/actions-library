@@ -271,7 +271,7 @@ runs:
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
           -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
-          -Dsonar.testExecutionReportPaths=sonar-reports/*.xml
+          -Dsonar.testExecutionReportPaths=./sonar-reports/neap-speech-service-coverage.xml
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
