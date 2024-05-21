@@ -272,6 +272,7 @@ runs:
           -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
           -Dsonar.coverageReportPaths=./sonar-reports/neap-speech-service-coverage.xml
+          -Dsonar.text.inclusions.activate=true
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
