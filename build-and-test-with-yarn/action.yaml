@@ -271,7 +271,7 @@ runs:
           -Dsonar.test.inclusions=${{ inputs.sonar-test-inclusions }}
           -Dsonar.coverage.exclusions=${{ inputs.sonar-coverage-exclusions }}
           -Dsonar.verbose=${{ inputs.sonar-verbose }}
-          -Dsonar.coverageReportPaths=./sonar-reports/neap-speech-service-coverage.xml
+          -Dsonar.coverageReportPaths=./sonar-reports/*.xml
           -Dsonar.text.inclusions.activate=true
           -Dsonar.text.inclusions=${{ inputs.sonar-inclusions }}
       env:
