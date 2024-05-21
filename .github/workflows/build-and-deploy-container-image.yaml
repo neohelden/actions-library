@@ -586,17 +586,10 @@ jobs:
     name: semantic-release
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    container:
-      image: node:20
 
     needs:
       - build-container-image
     steps:
-      - name: Install devDeps
-        run: |
-          apt-get update
-          apt-get install -y bash sudo
-
       - uses: neohelden/actions-library/semantic-release@add-extends
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
