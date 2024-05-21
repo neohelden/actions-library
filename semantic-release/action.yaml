@@ -65,13 +65,13 @@ runs:
       with:
         node-version: "20.x"
 
-    - run: sudo apt-get install -y jq
+    - run: sudo -E apt-get install -y jq
       shell: bash
 
     - name: Install semantic-release
       shell: bash
       run: |
-        sudo npm install -g \
+        sudo -E npm install -g \
           semantic-release@23 \
           @semantic-release/git@10 \
           @semantic-release/release-notes-generator@13 \
@@ -84,7 +84,7 @@ runs:
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
-          sudo npm install -g ${PLUGIN};
+          sudo -E npm install -g ${PLUGIN};
         done
 
     - name: Build the Code
