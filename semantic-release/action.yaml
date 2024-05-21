@@ -71,7 +71,7 @@ runs:
     - name: Install semantic-release
       shell: bash
       run: |
-        env
+        sudo -E env
         sudo -E npm install -g \
           semantic-release@23 \
           @semantic-release/git@10 \
