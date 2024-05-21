@@ -71,15 +71,15 @@ runs:
     - name: Install semantic-release
       shell: bash
       run: |
-        sudo -E node -v
+        sudo "PATH=$PATH" node -v
         node -v
-        sudo -E env
+        sudo "PATH=$PATH" env
         env
-        sudo which node 
-        sudo which npm
+        sudo "PATH=$PATH" which node 
+        sudo "PATH=$PATH" which npm
         which node
         which npm
-        sudo -E npm install -g \
+        sudo "PATH=$PATH" npm install -g \
           semantic-release@23 \
           @semantic-release/git@10 \
           @semantic-release/release-notes-generator@13 \
