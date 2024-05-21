@@ -71,20 +71,13 @@ runs:
     - name: Install semantic-release
       shell: bash
       run: |
-        sudo "PATH=$PATH" node -v
-        node -v
-        sudo "PATH=$PATH" env
-        env
-        sudo "PATH=$PATH" which node 
-        sudo "PATH=$PATH" which npm
-        which node
-        which npm
         sudo "PATH=$PATH" npm install -g \
           semantic-release@23 \
           @semantic-release/git@10 \
           @semantic-release/release-notes-generator@13 \
           @semantic-release/github@10 \
-          @semantic-release/exec@6
+          @semantic-release/exec@6 \
+          @semantic-release/commit-analyzer@12
 
     - name: Install ${{ inputs.extra-plugins }}
       shell: bash
@@ -92,7 +85,7 @@ runs:
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
-          sudo -E npm install -g ${PLUGIN};
+          sudo "PATH=$PATH" npm install -g ${PLUGIN};
         done
 
     - name: Build the Code
