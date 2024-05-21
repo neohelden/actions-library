@@ -182,7 +182,7 @@ on:
         type: string
         description: An npm package to extend the configuration with
         required: false
-      release-folders: 
+      release-folders:
         type: string
         description: "Folders to run semantic-release in"
         default: "."

@@ -29,7 +29,7 @@ inputs:
     description: An npm package to extend the configuration with
     required: false
     default: ""
-  release-folders: 
+  release-folders:
     description: "Folders to run semantic-release in"
     default: "."
     required: false
