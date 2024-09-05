@@ -72,7 +72,7 @@ runs:
         DISABLE_ERRORS: "true"
     - name: Archive mega linter artifacts
       if: (success() || failure()) && github.event_name == 'pull_request'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MegaLinter reports
         path: |
@@ -181,7 +181,7 @@ runs:
             --out licenses.csv
 
     - name: Upload license file
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: steps.check_node.outputs.node-project == 'true'
       with:
         name: Licenses - ${{ inputs.artifact-name }}
@@ -195,7 +195,7 @@ runs:
       shell: bash
 
     - name: Upload SBOM
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: steps.check_node.outputs.node-project == 'true'
       with:
         name: BOM - ${{ inputs.artifact-name }}
