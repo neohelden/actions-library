@@ -178,6 +178,15 @@ on:
         type: string
         description: Comma separated list of extra plugins to load for the sematic-release package
         required: false
+      release-extend-configuration:
+        type: string
+        description: An npm package to extend the configuration with
+        required: false
+      release-folders:
+        type: string
+        description: "Folders to run semantic-release in"
+        default: "."
+        required: false
       release-labels:
         type: string
         description: A comma seperated list of labels to add to a release PR
@@ -379,7 +388,7 @@ jobs:
       NPQ_PASS: Neolut1on
       NPQ_USER: neo
     container:
-      image: node:16
+      image: node:20
 
     steps:
       - name: Install devDeps
@@ -393,7 +402,7 @@ jobs:
           app_id: ${{ secrets.gh-app-id }}
           private_key: ${{ secrets.gh-app-private-key }}
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: neohelden/actions-library/build-and-test-with-yarn@add-extends
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
@@ -581,7 +590,7 @@ jobs:
     needs:
       - build-container-image
     steps:
-      - uses: neohelden/actions-library/semantic-release@main
+      - uses: neohelden/actions-library/semantic-release@add-extends
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
@@ -595,3 +604,5 @@ jobs:
           release-labels: ${{ inputs.release-labels }}
           auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}
           main-branch: ${{ inputs.main-branch }}
+          release-extend-configuration: ${{ inputs.release-extend-configuration }}
+          release-folders: ${{ inputs.release-folders }}

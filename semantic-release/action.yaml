@@ -25,6 +25,14 @@ inputs:
   release-extra-plugins:
     description: Comma separated list of extra plugins to load for the sematic-release package
     required: false
+  release-extend-configuration:
+    description: An npm package to extend the configuration with
+    required: false
+    default: ""
+  release-folders:
+    description: "Folders to run semantic-release in"
+    default: "."
+    required: false
   npm-automation-token:
     description: Automation token for NPM to publish packages
     required: false
@@ -48,41 +56,28 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
         ref: ${{ inputs.checkout-ref }}
 
-    - uses: actions/setup-node@v2.4.0
+    - uses: actions/setup-node@v4.0.2
       with:
-        node-version: "20"
+        node-version: "20.x"
 
-    - run: sudo apt-get install -y jq
-      shell: bash
-
-    - name: Build the Code
-      run: |
-        FILE=${{ inputs.tsconfig-build-file }}
-
-        if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
-        then
-          yarn --frozen-lockfile -D;
-          npx tsc -p "$FILE"
-        else
-          echo "Project is private or $FILE does not exist - ignoring"
-        fi
-      working-directory: ./
+    - run: sudo -E apt-get install -y jq
       shell: bash
 
     - name: Install semantic-release
       shell: bash
       run: |
-        sudo npm install -g \
+        sudo "PATH=$PATH" npm install -g \
           semantic-release@23 \
           @semantic-release/git@10 \
           @semantic-release/release-notes-generator@13 \
           @semantic-release/github@10 \
-          @semantic-release/exec@6
+          @semantic-release/exec@6 \
+          @semantic-release/commit-analyzer@12
 
     - name: Install ${{ inputs.extra-plugins }}
       shell: bash
@@ -90,8 +85,28 @@ runs:
         IFS=,
         PLUGINS=(${{inputs.release-extra-plugins}})
         for PLUGIN in ${PLUGINS[@]}; do
-          sudo npm install -g ${PLUGIN};
+          sudo "PATH=$PATH" npm install -g ${PLUGIN};
         done
+
+    - name: Build the Code
+      run: |
+        yarn config set ignore-scripts true
+        FILE=${{ inputs.tsconfig-build-file }}
+
+        # Extensions are only loadable from this package
+        if [ -f package.json ] && [ ! -z "${{ inputs.release-extend-configuration }}" ]
+        then 
+          yarn --frozen-lockfile -D;
+        fi
+
+        if [ $(jq -r .private package.json) = "false" ] && [ -f "$FILE" ]
+        then
+          npx tsc -p "$FILE"
+        else
+          echo "Project is private or $FILE does not exist - ignoring"
+        fi
+      working-directory: ./
+      shell: bash
 
     # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
     - id: generate_token
@@ -109,11 +124,24 @@ runs:
         for PLUGIN in ${EXTRA_PLUGINS[@]}; do
           PLUGINS="$PLUGINS,$PLUGIN";
         done
-        semantic-release \
-          --branches ${{ inputs.release-branch }} \
-          --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
-          --tag-format ${{ inputs.release-prefix }}\${version} \
-          --debug true
+        CONFIGURATIONS=(${{ inputs.release-extend-configuration }})
+        EXTEND_CONFIGURATION=""
+        for CONFIGURATION in ${CONFIGURATIONS[@]}; do
+          if [ -z "$CONFIGURATION" ]; then
+            continue;
+          fi
+          EXTEND_CONFIGURATION="-e ${CONFIGURATION} $EXTEND_CONFIGURATION";
+        done
+        for FOLDER in ${{ inputs.release-folders }}; do
+          cd $FOLDER;
+          semantic-release \
+            --branches ${{ inputs.release-branch }} \
+            $EXTEND_CONFIGURATION \
+            --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/git,@semantic-release/github${PLUGINS}" \
+            --tag-format ${{ inputs.release-prefix }}\${version} \
+            --debug true;
+          cd ..;
+        done
       env:
         GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -138,8 +166,8 @@ runs:
         branches: ["${GITHUB_REF#refs/*/}${DEFAULT_BRANCH}"]
         tagFormat: '${{ inputs.release-prefix }}\${version}'
         dryRun: true
-        ci: true
         debug: true
+        ci: true
         plugins:
           - '@semantic-release/commit-analyzer'
           - [
