@@ -393,7 +393,7 @@ jobs:
           app_id: ${{ secrets.gh-app-id }}
           private_key: ${{ secrets.gh-app-private-key }}
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: neohelden/actions-library/build-and-test-with-yarn@dh/add-yarn-v2
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
@@ -441,7 +441,7 @@ jobs:
       - prepare
 
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@main
+      - uses: neohelden/actions-library/check-code-compliance@dh/add-yarn-v2
         with:
           repo-ssh-key: ${{ secrets.global-audit-ci-repo-key }}
           checkout-ref: ${{ inputs.checkout-ref }}
@@ -581,7 +581,7 @@ jobs:
     needs:
       - build-container-image
     steps:
-      - uses: neohelden/actions-library/semantic-release@main
+      - uses: neohelden/actions-library/semantic-release@dh/add-yarn-v2
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           gh-app-id: ${{ secrets.gh-app-id }}
