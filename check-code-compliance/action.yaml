@@ -43,9 +43,21 @@ runs:
         fi
         echo "node-project=true" >> "$GITHUB_OUTPUT"
 
+        # Check for Yarnrc file
+        if [ -f .yarnrc.yml ]; then
+          echo "Yarn v4 PnP detected"
+          echo "yarn-pnp=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install dependencies
       run: yarn --frozen-lockfile
-      if: steps.check_node.outputs.node-project == 'true'
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
+      working-directory: ./
+      shell: bash
+
+    - name: Install dependencies with Yarn v4 PnP
+      run: yarn --immutable
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
       working-directory: ./
       shell: bash
 
@@ -82,7 +94,7 @@ runs:
     - name: Load global audit-ci config
       shell: bash
       working-directory: /tmp
-      if: steps.check_node.outputs.node-project == 'true'
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
       env:
         GIT_SSH_COMMAND: "ssh -i /tmp/audit_ci_key -o IdentitiesOnly=yes"
       run: |
@@ -117,7 +129,7 @@ runs:
         mv config/audit-ci.json /tmp/common_audit_ci.json
 
     - name: Audit dependencies
-      if: steps.check_node.outputs.node-project == 'true'
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
       run: |
         LOCAL_FILE=${{ inputs.audit-ci-config }}
         GLOBAL_FILE=/tmp/common_audit_ci.json
@@ -148,6 +160,13 @@ runs:
           npx audit-ci --high --config $GLOBAL_FILE
         fi
 
+      shell: bash
+      working-directory: ./
+
+    - name: Audit dependencies with Yarn v4 PnP
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
+      run: |
+        yarn npm audit --audit-level high
       shell: bash
       working-directory: ./
 
