@@ -207,10 +207,16 @@ runs:
         path: ./licenses.csv
         retention-days: 30
 
-    - name: Generate CycloneDX SBOM
+    - name: Generate CycloneDX SBOM (Yarn 1)
       working-directory: ./
-      if: steps.check_node.outputs.node-project == 'true'
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
       run: npx @cyclonedx/bom@3 -o bom.xml
+      shell: bash
+
+    - name: Generate CycloneDX SBOM (Yarn >= 3)
+      working-directory: ./
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
+      run: yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --output-format XML --output-file bom.xml
       shell: bash
 
     - name: Upload SBOM
