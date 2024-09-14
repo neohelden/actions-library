@@ -166,7 +166,7 @@ runs:
     - name: Audit dependencies with Yarn v4 PnP
       if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
       run: |
-        yarn npm audit --audit-level high
+        yarn npm audit --severity high
       shell: bash
       working-directory: ./
 
