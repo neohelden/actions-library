@@ -126,7 +126,12 @@ runs:
         FILE=yarn.lock
         if [ -f "$FILE" ]
         then
-          yarn --frozen-lockfile 
+          if [ -f .yarnrc.yml ]
+          then
+            yarn --immutable
+          else
+            yarn --frozen-lockfile
+          fi
         else
           echo "$FILE does not exist - ignoring"
           echo "no-yarn=true" >> "$GITHUB_OUTPUT"
