@@ -65,6 +65,7 @@ runs:
         grep -v '$(NPQ_HEADLESS_SERVICE_NAME)' | \
         grep -v '$(POD_NAMESPACE)' | \
         grep -v '$(POD_NAME)' | \
+        grep -v '$(DEPLOYMENT_NAME)' | \
         grep "\$(" && exit 1 || exit 0
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
