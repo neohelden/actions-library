@@ -1,0 +1,327 @@
+on:
+  workflow_call:
+    inputs:
+      image-registry:
+        description: Host name of the image registry where build container images are pushed to
+        required: false
+        default: registry.neohelden.com
+        type: string
+      registry-org:
+        description: Organization/project within the image registry
+        required: false
+        default: neohelden
+        type: string
+      image-name:
+        description: name of the image being built
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      image-tag:
+        type: string
+        description: Tag of the container image
+        required: false
+        default: ${{ github.event.pull_request.head.sha || github.sha }}
+      docker-file:
+        type: string
+        description: Full path to the Dockerfile
+        required: false
+        default: ./Dockerfile
+      docker-context:
+        type: string
+        description: Context used to build the Docker image
+        required: false
+        default: ./
+      platforms:
+        type: string
+        description: Comma-separated list of platforms the Docker image gets built for
+        required: false
+        default: linux/amd64
+      docker-push-build-args:
+        type: string
+        description: Build Args used when building the Docker image
+        required: false
+        default: ""
+      docker-push-build-secret-files:
+        type: string
+        description: Secret files passed to docker-build-push-action in yaml multiline format
+        required: false
+        default: ""
+      container-verify-cmd:
+        type: string
+        description: "Log entry which shows up if the container starts up successfully after build"
+        required: true
+
+      checkout-ref:
+        type: string
+        description: Ref to checkout from Git
+        default: ${{ github.event.pull_request.head.sha }}
+        required: false
+
+      default-branch:
+        type: string
+        description: Default development branch of this repository
+        default: ${{ github.event.repository.default_branch }}
+        required: false
+      main-branch:
+        type: string
+        description: Name of the branch where develop originates from
+        default: main
+        required: false
+      release-branch:
+        type: string
+        description: Branch used for releases
+        default: main
+        required: false
+      release-prefix:
+        type: string
+        description: "A prefix for the created release version"
+        required: false
+      release-extra-plugins:
+        type: string
+        description: Comma separated list of extra plugins to load for the sematic-release package
+        required: false
+      release-labels:
+        type: string
+        description: A comma seperated list of labels to add to a release PR
+        default: release
+        required: false
+
+      argo-host:
+        description: ArgoCd host
+        required: false
+        default: https://argocd.shared-dev.clusters.neohelden.com
+        type: string
+      argo-base-app:
+        description: ArgoCD app being used as base for deploying the built container image
+        required: false
+        default: neap-develop
+        type: string
+      dev-gitops-base-branch:
+        description: Branch within a gitops repositoriy used by ArgoCD
+        required: false
+        default: develop
+        type: string
+      workspaces-base-domain:
+        description: Domain name of the workspaces base
+        type: string
+        required: false
+        default: "shared-dev.clusters.neohelden.com"
+      argo-app-prefix:
+        description: Prefix for the ArgoCD App URL name
+        default: server
+        type: string
+        required: false
+
+      auto-merge-dependabot-enabled:
+        type: boolean
+        description: Enable auto-merge of dependabot PRs
+        required: false
+        default: false
+
+    secrets:
+      image-registry-username:
+        description: Username used to login at the image registry
+        required: true
+      image-registry-token:
+        description: Token use to login at the image registry
+        required: true
+      docker-push-build-secrets:
+        description: Secrets passed to docker-build-push action in yaml multiline format
+        required: false
+      argocd-auth-token:
+        description: Token for authenticating on ArgoCD host
+        required: true
+      gh-app-id:
+        description: Id of a Github App being used for triggering other workflows
+        required: true
+      gh-app-private-key:
+        description: Private key of a Github App being used for triggering other workflows
+        required: true
+      github-token:
+        description: Token used for accessing GitHub.com
+        required: true
+      sentry-auth-token:
+        description: A sentry token available at /sentry-auth in the docker build
+        required: false
+
+name: test-and-check-opa-policies
+
+jobs:
+  find-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-subfolders: ${{ steps.get-changes.outputs.changed-subfolders }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          separator: ","
+
+      - name: Get changed subfolders
+        id: get-changes
+        run: |
+          changes=$(echo "${{ steps.changed-files.outputs.all_changed_files }}")
+
+          # Get all folders directly beneith policies that have changed and not below them
+          changes=$(echo $changes | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
+
+          echo "changed-subfolders='$changes'"
+          # Format the output as a JSON array and not a newline separated list.
+
+          changes=$(echo -n $changes | jq -R -s -c 'split(",")')
+
+          echo "Changed Array: $changes"
+          echo "changed-subfolders=$changes" >> $GITHUB_OUTPUT
+
+  test-policies:
+    needs: [find-changes]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
+      max-parallel: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OPA Rego Tests
+        uses: masterpointio/github-action-opa-rego-test@b12fb1541decb1c8e943f3cfbc773c0024025893
+        with:
+          path: ./${{ matrix.folder }}
+          pr_comment_title: "OPA Rego Test Results for ${{ matrix.folder }}"
+
+  check-policy-format:
+    needs: [find-changes]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
+      max-parallel: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: latest
+
+      - name: Check OPA Policy Format
+        run: opa fmt --fail -l ./${{ matrix.folder }}
+
+  build-container-image:
+    needs:
+      - check-policy-format
+      - test-policies
+    runs-on: ubuntu-latest
+    steps:
+      - id: generate_token
+        uses: tibdex/github-app-token@v2.1.0
+        with:
+          app_id: ${{ secrets.gh-app-id }}
+          private_key: ${{ secrets.gh-app-private-key }}
+
+      - name: Build Docker image
+        uses: neohelden/actions-library/build-docker-image@main
+        with:
+          image-registry-username: ${{ secrets.image-registry-username }}
+          image-registry-token: ${{ secrets.image-registry-token }}
+          registry-org: ${{ inputs.registry-org }}
+          image-name: ${{ inputs.image-name }}
+          container-verify-cmd: ${{ inputs.container-verify-cmd }}
+          checkout-ref: ${{ inputs. checkout-ref}}
+          image-registry: ${{ inputs.image-registry }}
+          maximize-build-space: false
+          image-tag: ${{ inputs.image-tag }}
+          docker-file: ${{ inputs.docker-file }}
+          docker-context: ${{ inputs.docker-context }}
+          platforms: ${{ inputs.platforms }}
+          docker-push-build-args: ${{ inputs.docker-push-build-args }}
+          docker-push-build-secrets: |
+            ${{ secrets.docker-push-build-secrets }}
+          docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
+          github-token: ${{ steps.generate_token.outputs.token }}
+
+  ## cannot live in a Composite since that does not support Actions hosted in private registries
+  deploy-pr:
+    name: deploy-pr
+    if: contains(github.event.pull_request.labels.*.name, 'deploy')
+    needs:
+      - build-container-image
+    runs-on: ubuntu-latest
+    outputs:
+      argo-suffix: ${{ steps.prepare.outputs.argocd-suffix }}
+    env:
+      ## workaround since we only have a token setup in Github, but the script expects username/password
+      ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
+      ARGOCD_USERNAME: ""
+      ARGOCD_PASSWORD: ""
+      WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
+    container:
+      image: registry.neohelden.com/internal/argocd-action:1.0.2
+      credentials:
+        username: ${{ secrets.image-registry-username }}
+        password: ${{ secrets.image-registry-token }}
+    steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          for element in $(echo ${{ github.event.repository.name }} | tr "-" "\n" | tr "[:upper:]" "[:lower:]"); do
+            abbreviation=$abbreviation"${element:0:1}"
+          done
+
+          echo "argocd-suffix=-$abbreviation-${{ github.event.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: "Create PR App"
+        run: |
+          /argocd create \
+            --update \
+            -h ${{ inputs.argo-host }} \
+            -u ${{ env.ARGOCD_USERNAME }} \
+            -p ${{ env.ARGOCD_PASSWORD }} \
+            -a ${{ inputs.argo-base-app }} \
+            --suffix ${{ steps.prepare.outputs.argocd-suffix }} \
+            -b ${{ inputs.dev-gitops-base-branch }} \
+            -i registry.neohelden.com/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
+
+  status-badge:
+    if: (!contains(github.event.pull_request.body, 'App Deployment')) && contains(github.event.pull_request.labels.*.name, 'deploy')
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-pr
+    timeout-minutes: 5
+    steps:
+      - uses: neohelden/actions-library/argocd-add-status-badge@main
+        with:
+          argo-host: ${{ inputs.argo-host }}
+          argo-app: ${{ inputs.argo-base-app }}${{ needs.deploy-pr.outputs.argo-suffix }}
+          argo-suffix: ${{ needs.deploy-pr.outputs.argo-suffix }}
+          app-prefix: ${{ inputs.argo-app-prefix }}
+          github-token: ${{ secrets.github-token }}
+
+  semantic-release:
+    name: semantic-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    needs:
+      - build-container-image
+    steps:
+      - uses: neohelden/actions-library/semantic-release@main
+        with:
+          checkout-ref: ${{ inputs.checkout-ref }}
+          gh-app-id: ${{ secrets.gh-app-id }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
+          release-branch: ${{ inputs.release-branch }}
+          release-prefix: ${{ inputs.release-prefix }}
+          release-extra-plugins: ${{ inputs.release-extra-plugins }}
+          dev-branch: ${{ inputs.default-branch }}
+          release-labels: ${{ inputs.release-labels }}
+          auto-merge-dependabot-enabled: ${{ inputs.auto-merge-dependabot-enabled }}
+          main-branch: ${{ inputs.main-branch }}
