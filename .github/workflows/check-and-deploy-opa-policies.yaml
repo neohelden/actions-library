@@ -168,11 +168,9 @@ jobs:
         run: |
           changes=$(echo "${{ steps.changed-files.outputs.all_changed_files }}")
 
-          # Get all folders directly beneith policies that have changed and not below them
           changes=$(echo $changes | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
 
           echo "changed-subfolders='$changes'"
-          # Format the output as a JSON array and not a newline separated list.
 
           changes=$(echo -n $changes | jq -R -s -c 'split(",")')
 
