@@ -55,7 +55,7 @@ jobs:
     name: "Check kustomization"
     runs-on: ubuntu-latest
     steps:
-      - uses: neohelden/actions-library/kustomize-check@main
+      - uses: neohelden/actions-library/kustomize-check@dh/exclude-cat
         with:
           argocd-overlay-path: ${{ inputs.argocd-overlay-path }}
           private-key-robot-account: ${{ secrets.private-key-robot-account }}
