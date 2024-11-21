@@ -166,16 +166,16 @@ jobs:
       - name: Get changed subfolders
         id: get-changes
         run: |
-          changes=$(echo "${{ steps.changed-files.outputs.all_changed_files }}")
+          changes="${{ steps.changed-files.outputs.all_changed_files }}"
 
-          changes=$(echo $changes | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
+          changes=$(echo "$changes" | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
 
           echo "changed-subfolders='$changes'"
 
-          changes=$(echo -n $changes | jq -R -s -c 'split(",")')
+          changes=$(echo -n "$changes" | jq -R -s -c 'split(",")')
 
           echo "Changed Array: $changes"
-          echo "changed-subfolders=$changes" >> $GITHUB_OUTPUT
+          echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
 
   test-policies:
     needs: [find-changes]
