@@ -202,7 +202,6 @@ jobs:
           write_pr_comment: ${{ inputs.comment-on-pr }}
           report_untested_files: true
 
-
   check-policy-format:
     needs: [find-changes]
     runs-on: ubuntu-latest
