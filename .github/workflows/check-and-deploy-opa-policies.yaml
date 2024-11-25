@@ -118,6 +118,12 @@ on:
         required: false
         default: false
 
+      comment-on-pr:
+        type: boolean
+        description: Comment on PR with the results of the OPA tests
+        required: false
+        default: ${{ github.event.pull_request != null }}
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -193,6 +199,9 @@ jobs:
         with:
           path: ./${{ matrix.folder }}
           pr_comment_title: "OPA Rego Test Results for ${{ matrix.folder }}"
+          write_pr_comment: ${{ inputs.comment-on-pr }}
+          report_untested_files: true
+
 
   check-policy-format:
     needs: [find-changes]
