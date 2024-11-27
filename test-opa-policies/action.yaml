@@ -44,23 +44,17 @@ runs:
 
         
         for dir in $(${{ inputs.paths }}); do
-          local result
           result=$(opa test -v $path)
-          local failed_files
           failed_files=$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u)
           FAILED_FILES+=($failed_files)
-          local success_files
           success_files=$(echo $result | grep -oP '.*(?=: PASS)' | sort -u)
           SUCCESS_FILES+=($success_files)
-          local coverage
           coverage=$(opa test -v --coverage $path | jq -r '.coverage')
           COVERAGE_RESULTS+=($coverage)
         done
 
-        local overall_coverage
         overall_coverage=$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length')
 
-        local failed_string
         for file in ${FAILED_FILES[@]}; do
           failed_string+="❌ $file\n"
         done
