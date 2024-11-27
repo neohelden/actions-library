@@ -44,7 +44,7 @@ runs:
         COVERAGE_RESULTS=()
 
         
-        for dir in $DIRS; do
+        for dir in ${DIRS}; do
           echo "Checking $dir"
 
           result=$(opa test -v $path)
