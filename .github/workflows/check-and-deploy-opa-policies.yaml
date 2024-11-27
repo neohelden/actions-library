@@ -213,7 +213,6 @@ jobs:
           comment-on-pr: ${{ inputs.comment-on-pr }}
 
   check-policy-format:
-    needs: [find-changes]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
