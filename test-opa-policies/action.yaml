@@ -50,10 +50,10 @@ runs:
 
           result="$(opa test -v $dir)"
           
-          failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u || true)"
+          failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u | tr "\\n" "," || true)"
           FAILED_FILES+=($failed_files)
           
-          success_files="$(echo $result | grep -oP '.*(?=: PASS)' | sort -u || true)"
+          success_files="$(echo $result | grep -oP '.*(?=: PASS)' | sort -u | tr "\\n" "," || true)"
           SUCCESS_FILES+=($success_files)
           
           coverage="$(opa test -v --coverage $dir | jq -r '.coverage')"
@@ -75,8 +75,9 @@ runs:
         echo "failed-files=<<EOF" >> "$GITHUB_OUTPUT"
         echo "$failed_string" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
-        echo "success-files=$success_string" >> "$GITHUB_OUTPUT"
-        echo "coverage-results=${COVERAGE_RESULTS[*]}" >> "$GITHUB_OUTPUT"
+        echo "success-files=<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$success_string" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
         echo "overall-coverage=$overall_coverage" >> "$GITHUB_OUTPUT"
 
     - name: Comment PR
