@@ -123,6 +123,11 @@ on:
         description: Comment on PR with the results of the OPA tests
         required: false
         default: ${{ github.event.pull_request != null }}
+      policies-root-folder:
+        type: string
+        description: Root folder of the policies
+        required: false
+        default: policies
 
     secrets:
       image-registry-username:
@@ -174,7 +179,7 @@ jobs:
         run: |
           changes="${{ steps.changed-files.outputs.all_changed_files }}"
 
-          changes=$(echo "$changes" | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
+          changes=$(echo "$changes" | tr "," "\n" | grep -oP "${{ inputs.policies-root-folder }}/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
 
           echo "changed-subfolders='$changes'"
 
@@ -182,7 +187,7 @@ jobs:
 
           echo "Changed Array: $changes"
           if [ -z "$changes" ]; then
-            echo "changed-subfolders='./policies'" >> "$GITHUB_OUTPUT"
+            echo "changed-subfolders='./${{ inputs.policies-root-folder }}'" >> "$GITHUB_OUTPUT"
           else
             echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
           fi
@@ -204,10 +209,6 @@ jobs:
   check-policy-format:
     needs: [find-changes]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
-      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -218,7 +219,7 @@ jobs:
           version: latest
 
       - name: Check OPA Policy Format
-        run: opa fmt --fail -l ./${{ matrix.folder }}
+        run: opa fmt --fail -l ./${{ inputs.policies-root-folder }}
 
   build-container-image:
     needs:
