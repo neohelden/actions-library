@@ -38,12 +38,13 @@ runs:
       shell: bash
       run: |
         IFS=','
+        DIRS=( ${{ inputs.paths }})
         FAILED_FILES=()
         SUCCESS_FILES=()
         COVERAGE_RESULTS=()
 
         
-        for dir in $(${{ inputs.paths }}); do
+        for dir in $DIRS; do
           echo "Checking $dir"
 
           result=$(opa test -v $path)
@@ -73,7 +74,7 @@ runs:
       uses: thollander/actions-comment-pull-request@v3
       if: ${{ inputs.comment-on-pr == 'true' }} && (success() || failure())
       with:
-        comment_tag: opa-test-results
+        comment-tag: opa-test-results
         message: |
           ${{ inputs.pr-comment-title }}
           
