@@ -72,10 +72,10 @@ runs:
           success_string+="✅ $file\n"
         done
 
-        echo "failed-files=<<EOF" >> "$GITHUB_OUTPUT"
+        echo "failed-files<<EOF" >> "$GITHUB_OUTPUT"
         echo "$failed_string" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
-        echo "success-files=<<EOF" >> "$GITHUB_OUTPUT"
+        echo "success-files<<EOF" >> "$GITHUB_OUTPUT"
         echo "$success_string" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
         echo "overall-coverage=$overall_coverage" >> "$GITHUB_OUTPUT"
