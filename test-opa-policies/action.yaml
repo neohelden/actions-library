@@ -66,10 +66,10 @@ runs:
           failed_string+="❌ $file\n"
         done
 
-        echo "failed-files=$failed_string" >> "$GITHUB_OUTPUT"
-        echo "success-files=${SUCCESS_FILES[*]}" >> "$GITHUB_OUTPUT"
-        echo "coverage-results=${COVERAGE_RESULTS[*]}" >> "$GITHUB_OUTPUT"
-        echo "overall-coverage=$overall_coverage" >> "$GITHUB_OUTPUT"
+        echo "failed-files='$failed_string'" >> "$GITHUB_OUTPUT"
+        echo "success-files='${SUCCESS_FILES[*]}'" >> "$GITHUB_OUTPUT"
+        echo "coverage-results='${COVERAGE_RESULTS[*]}'" >> "$GITHUB_OUTPUT"
+        echo "overall-coverage='$overall_coverage'" >> "$GITHUB_OUTPUT"
 
     - name: Comment PR
       uses: thollander/actions-comment-pull-request@v3
