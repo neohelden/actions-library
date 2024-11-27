@@ -39,7 +39,7 @@ runs:
       run: |
         set -ex
         IFS=','
-        DIRS=( ${{ inputs.paths }})
+        DIRS=(${{ inputs.paths }})
         FAILED_FILES=()
         SUCCESS_FILES=()
         COVERAGE_RESULTS=()
@@ -48,7 +48,7 @@ runs:
         for dir in ${DIRS}; do
           echo "Checking $dir"
 
-          result=$(opa test -v $path)
+          result=$(opa test -v $dir)
           
           failed_files=$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u)
           FAILED_FILES+=($failed_files)
@@ -56,7 +56,7 @@ runs:
           success_files=$(echo $result | grep -oP '.*(?=: PASS)' | sort -u)
           SUCCESS_FILES+=($success_files)
           
-          coverage=$(opa test -v --coverage $path | jq -r '.coverage')
+          coverage=$(opa test -v --coverage $dir | jq -r '.coverage')
           COVERAGE_RESULTS+=($coverage)
         done
 
