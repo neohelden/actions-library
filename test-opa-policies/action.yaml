@@ -72,8 +72,8 @@ runs:
           success_string+="✅ $file\n"
         done
 
-        failed_string=$(echo -e "$failed_string" | tr "\n" "<br/>")
-        success_string=$(echo -e "$success_string" | tr "\n" "<br/>")
+        failed_string=$(echo -e "$failed_string")
+        success_string=$(echo -e "$success_string")
 
         echo "failedfiles=$failed_string" >> "$GITHUB_OUTPUT"
         echo "successfiles<<EOF" >> "$GITHUB_OUTPUT"
