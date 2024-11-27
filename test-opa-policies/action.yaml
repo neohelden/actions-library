@@ -44,16 +44,21 @@ runs:
 
         
         for dir in $(${{ inputs.paths }}); do
+          echo "Checking $dir"
+
           result=$(opa test -v $path)
+          
           failed_files=$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u)
           FAILED_FILES+=($failed_files)
+          
           success_files=$(echo $result | grep -oP '.*(?=: PASS)' | sort -u)
           SUCCESS_FILES+=($success_files)
+          
           coverage=$(opa test -v --coverage $path | jq -r '.coverage')
           COVERAGE_RESULTS+=($coverage)
         done
 
-        overall_coverage=$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length')
+        overall_coverage=$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length' || true)
 
         for file in ${FAILED_FILES[@]}; do
           failed_string+="❌ $file\n"
