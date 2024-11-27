@@ -37,7 +37,7 @@ runs:
     - name: Run OPA Test
       shell: bash
       run: |
-        set -ex
+        set -x
         IFS=','
         DIRS=(${{ inputs.paths }})
         FAILED_FILES=()
@@ -48,7 +48,7 @@ runs:
         for dir in ${DIRS}; do
           echo "Checking $dir"
 
-          result=$(opa test -v $dir)
+          result="$(opa test -v $dir)"
           
           failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u)"
           FAILED_FILES+=($failed_files)
@@ -60,7 +60,7 @@ runs:
           COVERAGE_RESULTS+=($coverage)
         done
 
-        overall_coverage=$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length' || true)
+        overall_coverage="$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length' || true)"
 
         for file in ${FAILED_FILES[@]}; do
           failed_string+="❌ $file\n"
