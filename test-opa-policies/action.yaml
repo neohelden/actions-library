@@ -37,6 +37,7 @@ runs:
     - name: Run OPA Test
       shell: bash
       run: |
+        set -ex
         IFS=','
         DIRS=( ${{ inputs.paths }})
         FAILED_FILES=()
