@@ -181,26 +181,25 @@ jobs:
           changes=$(echo -n "$changes" | jq -R -s -c 'split(",")')
 
           echo "Changed Array: $changes"
-          echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
+          if [ -z "$changes" ]; then
+            echo "changed-subfolders='./policies'" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
+          fi
 
   test-policies:
     needs: [find-changes]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
-      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run OPA Rego Tests
-        uses: masterpointio/github-action-opa-rego-test@b12fb1541decb1c8e943f3cfbc773c0024025893
+        uses: ./test-opa-policies
         with:
-          path: ./${{ matrix.folder }}
-          pr_comment_title: "OPA Rego Test Results for ${{ matrix.folder }}"
-          write_pr_comment: ${{ inputs.comment-on-pr }}
-          report_untested_files: true
+          paths: ${{ needs.find-changes.outputs.changed-subfolders }}
+          pr-comment-title: "OPA Policy Test"
+          comment-on-pr: ${{ inputs.comment-on-pr }}
 
   check-policy-format:
     needs: [find-changes]
