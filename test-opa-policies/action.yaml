@@ -75,9 +75,11 @@ runs:
         failed_string=$(echo -e "$failed_string" | tr "\n" "<br/>")
         success_string=$(echo -e "$success_string" | tr "\n" "<br/>")
 
-        echo "failed-files=$failed_string" >> "$GITHUB_OUTPUT"
-        echo "success-files=$success_string" >> "$GITHUB_OUTPUT"
-        echo "overall-coverage=$overall_coverage" >> "$GITHUB_OUTPUT"
+        echo "failedfiles=$failed_string" >> "$GITHUB_OUTPUT"
+        echo "successfiles<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$success_string" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+        echo "overallcoverage=$overall_coverage" >> "$GITHUB_OUTPUT"
 
     - name: Comment PR
       uses: thollander/actions-comment-pull-request@v3
@@ -88,7 +90,8 @@ runs:
           ${{ inputs.pr-comment-title }}
           
 
-          ${{ steps.run-opa.outputs.failed-files }}
+          ${{ steps.run-opa.outputs.successfiles }}
+          ${{ steps.run-opa.outputs.failedfiles }}
           
 
-          Overall Coverage: ${{ steps.run-opa.outputs.overall-coverage }}
+          Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%
