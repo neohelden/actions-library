@@ -199,6 +199,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout test-opa-policies
+        uses: actions/checkout@v4
+        with:
+          repository: neohelden/actions-library
+          
+
       - name: Run OPA Rego Tests
         uses: ./test-opa-policies
         with:
