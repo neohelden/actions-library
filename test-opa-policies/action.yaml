@@ -36,6 +36,7 @@ runs:
 
     - name: Run OPA Test
       shell: bash
+      id: run-opa
       run: |
         set -x
         IFS=','
