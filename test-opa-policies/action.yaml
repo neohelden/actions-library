@@ -19,7 +19,6 @@ inputs:
     default: "true"
     required: false
 
-
 runs:
   using: "composite"
   steps:
@@ -45,7 +44,7 @@ runs:
         SUCCESS_FILES=()
         COVERAGE_RESULTS=()
 
-        
+
         for dir in ${DIRS}; do
           echo "Checking $dir"
 
@@ -89,10 +88,10 @@ runs:
         comment-tag: opa-test-results
         message: |
           ${{ inputs.pr-comment-title }}
-          
+
 
           ${{ steps.run-opa.outputs.successfiles }}
           ${{ steps.run-opa.outputs.failedfiles }}
-          
+
 
           Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%
