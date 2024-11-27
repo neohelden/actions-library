@@ -183,8 +183,6 @@ jobs:
 
           echo "changed-subfolders='$changes'"
 
-          changes=$(echo -n "$changes" | jq -R -s -c 'split(",")')
-
           echo "Changed Array: $changes"
           if [ -z "$changes" ]; then
             echo "changed-subfolders='./${{ inputs.policies-root-folder }}'" >> "$GITHUB_OUTPUT"
@@ -205,6 +203,7 @@ jobs:
           paths: ${{ needs.find-changes.outputs.changed-subfolders }}
           pr-comment-title: "OPA Policy Test"
           comment-on-pr: ${{ inputs.comment-on-pr }}
+          checkout-ref: ${{ inputs.checkout-ref }}
 
   check-policy-format:
     runs-on: ubuntu-latest
