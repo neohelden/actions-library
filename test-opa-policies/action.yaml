@@ -50,10 +50,10 @@ runs:
 
           result="$(opa test -v $dir)"
           
-          failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u)"
+          failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u || true)"
           FAILED_FILES+=($failed_files)
           
-          success_files="$(echo $result | grep -oP '.*(?=: PASS)' | sort -u)"
+          success_files="$(echo $result | grep -oP '.*(?=: PASS)' | sort -u || true)"
           SUCCESS_FILES+=($success_files)
           
           coverage="$(opa test -v --coverage $dir | jq -r '.coverage')"
