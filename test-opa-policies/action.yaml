@@ -37,47 +37,60 @@ runs:
       shell: bash
       id: run-opa
       run: |
-        set -x
-        IFS=','
-        DIRS=(${{ inputs.paths }})
-        FAILED_FILES=()
-        SUCCESS_FILES=()
-        COVERAGE_RESULTS=()
-
-
+        DIRS=( ${{ inputs.paths }} )
         for dir in ${DIRS}; do
-          echo "Checking $dir"
 
-          result="$(opa test -v $dir)"
-          
-          failed_files="$(echo $result | grep -oP '.*(?=: FAIL)' | sort -u | tr "\\n" "," || true)"
-          FAILED_FILES+=($failed_files)
-          
-          success_files="$(echo $result | grep -oP '.*(?=: PASS)' | sort -u | tr "\\n" "," || true)"
-          SUCCESS_FILES+=($success_files)
-          
-          coverage="$(opa test -v --coverage $dir | jq -r '.coverage')"
-          COVERAGE_RESULTS+=($coverage)
+            declare -A test_results
+            declare -A test_results_coverage
+            declare -a test_files
+
+            echo "Checking $dir"
+            test_result="$(opa test -v $dir | tee opa_out.out)"
+            coverage_result="$(opa test -v --coverage $dir | jq . | tee opa_out.json)"
+            
+            
+            IFS=$'\n'    
+            lines=$(echo "$test_result" | head -n-2 )
+
+            file=""
+            for line in ${lines[@]}; do
+                if [[ $line == *"FAIL"* ]]; then
+                    test_results["${file}_fail"]=${test_results["${file}_fail"]}+1
+                elif [[ $line == *"PASS"* ]]; then
+                    test_results["${file}_pass"]=$((${test_results["${file}_pass"]}+1))
+                else
+                    echo IS FILE
+                    file=${line::-1}
+                    test_files+=($file)
+                    test_results["${file}_pass"]=0
+                    test_results["${file}_fail"]=0
+                fi
+            done
+            unset IFS
+            
+            coverage=$(echo -n $coverage_result | jq -r '.coverage')
+            test_results_coverage[$dir]=$coverage
+        done
+        echo ABC
+        overall_coverage="$(echo ${test_results_coverage[@]} | jq -s 'add/length' || true)"
+
+        files_string="| File | Successful | Failed |\n| --- | --- | --- |\n"
+        for file in ${test_files[@]}; do
+            files_string+="| "
+            successful=${test_results["${file}_pass"]}
+            failed=${test_results["${file}_fail"]}
+            if [ $failed -gt 0 ]; then
+                files_string+="❌"
+            else
+                files_string+="✅"
+            fi
+            files_string+=" $file | $successful | $failed |\n"
         done
 
-        overall_coverage="$(echo ${COVERAGE_RESULTS[@]} | jq -s 'add/length' || true)"
+        files_string=$(echo -e "$files_string")
 
-        failed_string=""
-        for file in ${FAILED_FILES[@]}; do
-          failed_string+="❌ $file\n"
-        done
-
-        success_string=""
-        for file in ${SUCCESS_FILES[@]}; do
-          success_string+="✅ $file\n"
-        done
-
-        failed_string=$(echo -e "$failed_string")
-        success_string=$(echo -e "$success_string")
-
-        echo "failedfiles=$failed_string" >> "$GITHUB_OUTPUT"
-        echo "successfiles<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$success_string" >> "$GITHUB_OUTPUT"
+        echo "files<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$files_string" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
         echo "overallcoverage=$overall_coverage" >> "$GITHUB_OUTPUT"
 
@@ -87,11 +100,10 @@ runs:
       with:
         comment-tag: opa-test-results
         message: |
-          ${{ inputs.pr-comment-title }}
+          # ${{ inputs.pr-comment-title }}
 
 
-          ${{ steps.run-opa.outputs.successfiles }}
-          ${{ steps.run-opa.outputs.failedfiles }}
+          ${{ steps.run-opa.outputs.files }}
 
-
+          ---
           Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%
