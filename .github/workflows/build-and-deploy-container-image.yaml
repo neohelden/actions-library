@@ -531,7 +531,7 @@ jobs:
       WORKSPACES_BASE: ${{ inputs.workspaces-base-domain }}
 
     container:
-      image: registry.neohelden.com/internal/argocd-action:1.0.2
+      image: registry.neohelden.com/internal/argocd-action:1.1.1
       credentials:
         username: ${{ secrets.image-registry-username }}
         password: ${{ secrets.image-registry-token }}
