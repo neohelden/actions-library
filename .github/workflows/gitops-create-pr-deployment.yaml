@@ -86,7 +86,7 @@ jobs:
       ARGOCD_AUTH_TOKEN: "${{ secrets.argocd-auth-token }}"
 
     container:
-      image: registry.neohelden.com/internal/argocd-action:1.1.0
+      image: registry.neohelden.com/internal/argocd-action:1.1.1
       credentials:
         username: ${{ secrets.image-registry-username }}
         password: ${{ secrets.image-registry-token }}
