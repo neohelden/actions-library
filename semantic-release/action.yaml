@@ -105,6 +105,11 @@ runs:
         app_id: ${{ inputs.gh-app-id }}
         private_key: ${{ inputs.gh-app-private-key }}
 
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.checkout-ref }}
+        token: ${{ steps.generate_token.outputs.token }}
+
     - name: Create semantic release
       shell: bash
       run: |
