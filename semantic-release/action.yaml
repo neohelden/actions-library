@@ -108,6 +108,7 @@ runs:
     - uses: actions/checkout@v4
       with:
         ref: ${{ inputs.checkout-ref }}
+        clean: false
         token: ${{ steps.generate_token.outputs.token }}
 
     - name: Create semantic release
