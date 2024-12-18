@@ -167,7 +167,8 @@ runs:
       id: checkEsLint
       run: |
         FILE=${{ inputs.eslint-configuration-file }}
-        if [ -f "$FILE" ]
+        ESLINT_V5_FILE=eslint.config.mjs
+        if [ -f "$FILE" ] || [ -f "$ESLINT_V5_FILE" ]
         then
           echo "runEslint=true" >> "$GITHUB_OUTPUT"
         fi
