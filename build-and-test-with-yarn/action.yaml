@@ -179,7 +179,7 @@ runs:
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
       shell: bash
       run: |
-        npx eslint . --ext ${{ inputs.eslint-ext-patterns }}
+        npx eslint --ext ${{ inputs.eslint-ext-patterns }} .
 
     - name: ESlint Annotate
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
