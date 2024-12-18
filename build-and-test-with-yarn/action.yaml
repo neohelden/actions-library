@@ -167,10 +167,14 @@ runs:
       id: checkEsLint
       run: |
         FILE=${{ inputs.eslint-configuration-file }}
-        ESLINT_V5_FILE=eslint.config.mjs
-        if [ -f "$FILE" ] || [ -f "$ESLINT_V5_FILE" ]
+        ESLINT_V9_FILE=eslint.config.mjs
+        if [ -f "$FILE" ]
         then
           echo "runEslint=true" >> "$GITHUB_OUTPUT"
+        fi
+        if [ -f "$ESLINT_V9_FILE" ]
+        then
+          echo "runEslintV9=true" >> "$GITHUB_OUTPUT"
         fi
       working-directory: ./
       shell: bash
@@ -185,6 +189,18 @@ runs:
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslint == 'true'
       shell: bash
       run: npx eslint --ext ${{ inputs.eslint-ext-patterns }} --output-file eslint_report.json --format json .
+
+
+    - name: ESlint v9
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslintV9 == 'true'
+      shell: bash
+      run: |
+        npx eslint .
+
+    - name: ESlint v9 Annotate
+      if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.checkEsLint.outputs.runEslintV9 == 'true'
+      shell: bash
+      run: npx eslint --output-file eslint_report.json --format json .
 
     - name: Have files changed?
       id: check_files_changed
