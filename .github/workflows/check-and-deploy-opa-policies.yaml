@@ -195,7 +195,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run OPA Rego Tests
-        uses: masterpointio/github-action-opa-rego-test@b12fb1541decb1c8e943f3cfbc773c0024025893
+        uses: masterpointio/github-action-opa-rego-test@1a64a861e17b61efd0add50af7100aec84aa1098
         with:
           path: ./${{ matrix.folder }}
           pr_comment_title: "OPA Rego Test Results for ${{ matrix.folder }}"
