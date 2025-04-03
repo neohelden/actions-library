@@ -173,7 +173,7 @@ jobs:
         uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           separator: ","
-          files: ${{ inputs.policies-root-folder }}
+          files: ${{ inputs.policies-root-folder }}/**
           dir_names_max_depth: 2 # Returns only the files beneith policies-root-folder
 
       - name: Get changed subfolders
