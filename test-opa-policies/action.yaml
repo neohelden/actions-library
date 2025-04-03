@@ -62,7 +62,7 @@ runs:
             file=""
             for line in ${lines[@]}; do
                 if [[ $line == *"FAIL"* ]]; then
-                    test_results["${file}_fail"]=${test_results["${file}_fail"]}+1
+                    test_results["${file}_fail"]=$((${test_results["${file}_fail"]}+1))
                 elif [[ $line == *"PASS"* ]]; then
                     test_results["${file}_pass"]=$((${test_results["${file}_pass"]}+1))
                 else
