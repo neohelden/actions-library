@@ -110,7 +110,7 @@ runs:
 
     - name: Comment PR
       uses: thollander/actions-comment-pull-request@v3
-      if: ${{ inputs.comment-on-pr == 'true' }} && (success() || failure())
+      if: ${{ inputs.comment-on-pr == 'true' }} && always()
       with:
         comment-tag: opa-test-results
         message: |
