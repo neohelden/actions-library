@@ -47,10 +47,13 @@ runs:
             declare -a test_files
 
             echo "Checking $dir"
-            test_result="$(opa test -v $dir | tee opa_out.out || true)"
-            coverage_result="$(opa test -v --coverage $dir | jq . | tee opa_out.json || true)"
+            test_result="$(opa test -v $dir)"
+            coverage_result="$((opa test -v --coverage $dir || echo '{"coverage": 0}') | jq .)"
             
-            
+            if [[ $test_result == *"FAILURES"* ]]; then
+                test_result=$(echo "$test_result" |  sed  '1,/^SUMMARY/d' | sed "s/--------------------------------------------------------------------------------//" | head -n-1)
+            fi
+
             IFS=$'\n'    
             lines=$(echo "$test_result" | head -n-2 )
 
