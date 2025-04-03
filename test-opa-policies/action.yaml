@@ -1,0 +1,122 @@
+name: "test-opa-policies"
+
+description: "Tests OPA policies"
+
+inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
+  paths:
+    description: Comma separated list of paths to test
+    required: true
+  pr-comment-title:
+    description: Title of the PR comment
+    default: "OPA Policy Test"
+    required: false
+  comment-on-pr:
+    description: "If true, a comment will be added to the PR"
+    default: "true"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.checkout-ref }}
+
+    - name: Setup OPA
+      uses: open-policy-agent/setup-opa@v2
+      with:
+        version: latest
+        static: "true"
+
+    - name: Run OPA Test
+      shell: bash
+      id: run-opa
+      run: |
+        failure=false
+
+        DIRS=( ${{ inputs.paths }} )
+        for dir in ${DIRS}; do
+
+            declare -A test_results
+            declare -A test_results_coverage
+            declare -a test_files
+
+            echo "Checking $dir"
+            test_result="$(opa test -v $dir || true)"
+            coverage_result="$((opa test -v --coverage $dir || echo '{"coverage": 0}') | jq .)"
+            
+            if [[ $test_result == *"FAILURES"* ]]; then
+                test_result=$(echo "$test_result" |  sed  '1,/^SUMMARY/d' | sed "s/--------------------------------------------------------------------------------//" | head -n-1)
+            fi
+
+            IFS=$'\n'    
+            lines=$(echo "$test_result" | head -n-2 )
+
+            file=""
+            for line in ${lines[@]}; do
+                if [[ $line == *"FAIL"* ]]; then
+                    test_results["${file}_fail"]=$((${test_results["${file}_fail"]}+1))
+                elif [[ $line == *"PASS"* ]]; then
+                    test_results["${file}_pass"]=$((${test_results["${file}_pass"]}+1))
+                else
+                    file=${line::-1}
+                    test_files+=($file)
+                    test_results["${file}_pass"]=0
+                    test_results["${file}_fail"]=0
+                fi
+            done
+            unset IFS
+            
+            coverage=$(echo -n $coverage_result | jq -r '.coverage')
+            test_results_coverage[$dir]=$coverage
+        done
+        overall_coverage="$(echo ${test_results_coverage[@]} | jq -s 'add/length' || true)"
+
+        files_string="| File | Successful | Failed |\n| --- | --- | --- |\n"
+        for file in ${test_files[@]}; do
+            files_string+="| "
+            successful=${test_results["${file}_pass"]}
+            failed=${test_results["${file}_fail"]}
+            if [ $failed -gt 0 ]; then
+                files_string+="❌"
+                failure=true
+            else
+                files_string+="✅"
+            fi
+            files_string+=" $file | $successful | $failed |\n"
+        done
+
+        files_string=$(echo -e "$files_string")
+
+        echo "files<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$files_string" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+        echo "overallcoverage=$overall_coverage" >> "$GITHUB_OUTPUT"
+
+        if [ "$failure" = true ]; then
+            echo "FAILURE"
+            exit 1
+        else
+            echo "SUCCESS"
+        fi
+        echo "OPA test completed successfully"
+
+    - name: Comment PR
+      uses: thollander/actions-comment-pull-request@v3
+      if: always()
+      continue-on-error: true
+      with:
+        comment-tag: opa-test-results
+        message: |
+          # ${{ inputs.pr-comment-title }}
+
+
+          ${{ steps.run-opa.outputs.files }}
+
+          ---
+          Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%

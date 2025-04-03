@@ -123,6 +123,11 @@ on:
         description: Comment on PR with the results of the OPA tests
         required: false
         default: ${{ github.event.pull_request != null }}
+      policies-root-folder:
+        type: string
+        description: Root folder of the policies
+        required: false
+        default: policies
 
     secrets:
       image-registry-username:
@@ -165,50 +170,46 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           separator: ","
+          files: ${{ inputs.policies-root-folder }}/**
+          dir_names: "true"
+          dir_names_max_depth: 2 # Returns only the files beneith policies-root-folder
 
       - name: Get changed subfolders
         id: get-changes
         run: |
           changes="${{ steps.changed-files.outputs.all_changed_files }}"
 
-          changes=$(echo "$changes" | tr "," "\n" | grep -oP "policies/[^/]+/" | sort -u | tr "\n" "," | sed 's/,$//')
+          changes=$(echo "$changes" | tr "," "\n" | sort -u | tr "\n" "," | sed 's/,$//')
 
           echo "changed-subfolders='$changes'"
 
-          changes=$(echo -n "$changes" | jq -R -s -c 'split(",")')
-
           echo "Changed Array: $changes"
-          echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
+          if [ -z "$changes" ]; then
+            echo "changed-subfolders='./${{ inputs.policies-root-folder }}'" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed-subfolders=$changes" >> "$GITHUB_OUTPUT"
+          fi
 
   test-policies:
     needs: [find-changes]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
-      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run OPA Rego Tests
-        uses: masterpointio/github-action-opa-rego-test@b12fb1541decb1c8e943f3cfbc773c0024025893
+        uses: neohelden/actions-library/test-opa-policies@main
         with:
-          path: ./${{ matrix.folder }}
-          pr_comment_title: "OPA Rego Test Results for ${{ matrix.folder }}"
-          write_pr_comment: ${{ inputs.comment-on-pr }}
-          report_untested_files: true
+          paths: ${{ needs.find-changes.outputs.changed-subfolders }}
+          pr-comment-title: "OPA Policy Test"
+          comment-on-pr: ${{ inputs.comment-on-pr }}
+          checkout-ref: ${{ inputs.checkout-ref }}
 
   check-policy-format:
-    needs: [find-changes]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        folder: ${{ fromJson(needs.find-changes.outputs.changed-subfolders)  }}
-      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -219,7 +220,7 @@ jobs:
           version: latest
 
       - name: Check OPA Policy Format
-        run: opa fmt --fail -l ./${{ matrix.folder }}
+        run: opa fmt --fail -l ./${{ inputs.policies-root-folder }}
 
   build-container-image:
     needs:
