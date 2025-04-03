@@ -57,6 +57,8 @@ runs:
             IFS=$'\n'    
             lines=$(echo "$test_result" | head -n-2 )
 
+            echo $lines
+
             file=""
             for line in ${lines[@]}; do
                 if [[ $line == *"FAIL"* ]]; then
