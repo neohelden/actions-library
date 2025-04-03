@@ -37,6 +37,8 @@ runs:
       shell: bash
       id: run-opa
       run: |
+        failure=false
+
         DIRS=( ${{ inputs.paths }} )
         for dir in ${DIRS}; do
 
@@ -45,8 +47,8 @@ runs:
             declare -a test_files
 
             echo "Checking $dir"
-            test_result="$(opa test -v $dir | tee opa_out.out)"
-            coverage_result="$(opa test -v --coverage $dir | jq . | tee opa_out.json)"
+            test_result="$(opa test -v $dir | tee opa_out.out || true)"
+            coverage_result="$(opa test -v --coverage $dir | jq . | tee opa_out.json || true)"
             
             
             IFS=$'\n'    
@@ -79,6 +81,7 @@ runs:
             failed=${test_results["${file}_fail"]}
             if [ $failed -gt 0 ]; then
                 files_string+="❌"
+                failure=true
             else
                 files_string+="✅"
             fi
@@ -91,6 +94,14 @@ runs:
         echo "$files_string" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
         echo "overallcoverage=$overall_coverage" >> "$GITHUB_OUTPUT"
+
+        if [ "$failure" = true ]; then
+            echo "FAILURE"
+            exit 1
+        else
+            echo "SUCCESS"
+        fi
+        echo "OPA test completed successfully"
 
     - name: Comment PR
       uses: thollander/actions-comment-pull-request@v3
