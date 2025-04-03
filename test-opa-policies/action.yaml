@@ -57,8 +57,6 @@ runs:
             IFS=$'\n'    
             lines=$(echo "$test_result" | head -n-2 )
 
-            echo $lines
-
             file=""
             for line in ${lines[@]}; do
                 if [[ $line == *"FAIL"* ]]; then
@@ -110,7 +108,8 @@ runs:
 
     - name: Comment PR
       uses: thollander/actions-comment-pull-request@v3
-      if: ${{ inputs.comment-on-pr == 'true' }} && always()
+      if: always()
+      continue-on-error: true
       with:
         comment-tag: opa-test-results
         message: |
