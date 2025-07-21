@@ -129,6 +129,12 @@ on:
         required: false
         default: policies
 
+      required-policy-coverage:
+        type: string
+        description: Required coverage percentage to pass the OPA tests
+        required: false
+        default: "80"
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -207,6 +213,7 @@ jobs:
           pr-comment-title: "OPA Policy Test"
           comment-on-pr: ${{ inputs.comment-on-pr }}
           checkout-ref: ${{ inputs.checkout-ref }}
+          required-coverage: ${{ inputs.required-policy-coverage }}
 
   check-policy-format:
     runs-on: ubuntu-latest

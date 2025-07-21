@@ -18,6 +18,10 @@ inputs:
     description: "If true, a comment will be added to the PR"
     default: "true"
     required: false
+  required-coverage:
+    description: "Required coverage percentage to pass the test"
+    default: "0"
+    required: false
 
 runs:
   using: "composite"
@@ -120,3 +124,19 @@ runs:
 
           ---
           Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%
+
+    # Enforce the required coverage
+    - name: Enforce Required Coverage
+      if: always()
+      run: |
+        required_coverage=${{ inputs.required-coverage }}
+        overall_coverage=${{ steps.run-opa.outputs.overallcoverage }}
+
+        if [ "$overall_coverage" -lt "$required_coverage" ]; then
+            echo "Required coverage of $required_coverage% not met. Current coverage is $overall_coverage%."
+            exit 1
+        else
+            echo "Required coverage of $required_coverage% met. Current coverage is $overall_coverage%."
+        fi
+      shell: bash
+      id: enforce-coverage
