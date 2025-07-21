@@ -207,7 +207,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run OPA Rego Tests
-        uses: neohelden/actions-library/test-opa-policies@dh/add-enforce-coverage
+        uses: neohelden/actions-library/test-opa-policies@main
         with:
           paths: ${{ needs.find-changes.outputs.changed-subfolders }}
           pr-comment-title: "OPA Policy Test"
