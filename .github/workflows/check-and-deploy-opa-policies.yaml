@@ -213,6 +213,7 @@ jobs:
           pr-comment-title: "OPA Policy Test"
           comment-on-pr: ${{ inputs.comment-on-pr }}
           checkout-ref: ${{ inputs.checkout-ref }}
+          required-coverage: ${{ inputs.required-policy-coverage }}
 
   check-policy-format:
     runs-on: ubuntu-latest
@@ -260,7 +261,6 @@ jobs:
             ${{ secrets.docker-push-build-secrets }}
           docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
           github-token: ${{ steps.generate_token.outputs.token }}
-          required-coverage: ${{ inputs.required-policy-coverage }}
 
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   deploy-pr:
