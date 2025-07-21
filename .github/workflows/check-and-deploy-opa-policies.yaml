@@ -129,6 +129,12 @@ on:
         required: false
         default: policies
 
+      required-policy-coverage:
+        type: string
+        description: Required coverage percentage to pass the OPA tests
+        required: false
+        default: "80"
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -235,7 +241,7 @@ jobs:
           private_key: ${{ secrets.gh-app-private-key }}
 
       - name: Build Docker image
-        uses: neohelden/actions-library/build-docker-image@main
+        uses: neohelden/actions-library/build-docker-image@dh/add-enforce-coverage
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
           image-registry-token: ${{ secrets.image-registry-token }}
@@ -254,6 +260,7 @@ jobs:
             ${{ secrets.docker-push-build-secrets }}
           docker-push-build-secret-files: ${{ inputs.docker-push-build-secret-files }}
           github-token: ${{ steps.generate_token.outputs.token }}
+          required-coverage: ${{ inputs.required-policy-coverage }}
 
   ## cannot live in a Composite since that does not support Actions hosted in private registries
   deploy-pr:
