@@ -125,8 +125,7 @@ runs:
           ---
           Overall Coverage: ${{ steps.run-opa.outputs.overallcoverage }}%
 
-    
-# Enforce the required coverage
+    # Enforce the required coverage
     - name: Enforce Required Coverage
       if: always()
       run: |
