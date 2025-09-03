@@ -143,7 +143,7 @@ runs:
 
     # use specific commit-sha to be sure this is not changed
     - name: Maximize build space
-      if: ${{ inputs.maximize-build-space == true }}
+      if: ${{ inputs.maximize-build-space == "true" }}
       uses: easimon/maximize-build-space@b4d02c14493a9653fe7af06cc89ca5298071c66e
       with:
         remove-dotnet: "true"
@@ -152,7 +152,7 @@ runs:
         build-mount-path: /var/lib/docker
 
     - name: Restart Docker service
-      if: ${{ inputs.maximize-build-space == true }}
+      if: ${{ inputs.maximize-build-space == "true" }}
       shell: bash
       run: sudo service docker restart
 
