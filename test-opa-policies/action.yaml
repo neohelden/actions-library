@@ -46,7 +46,7 @@ runs:
         IFS=','
         read -ra DIRS <<< "${{ inputs.paths }}"
         unset IFS
-        for dir in "${DIRS[@]}"; do
+        for dir in $DIRS; do
 
             declare -A test_results
             declare -A test_results_coverage
