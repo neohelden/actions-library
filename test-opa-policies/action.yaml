@@ -43,8 +43,10 @@ runs:
       run: |
         failure=false
 
-        DIRS=( ${{ inputs.paths }} )
-        for dir in ${DIRS}; do
+        IFS=','
+        read -ra DIRS <<< "${{ inputs.paths }}"
+        unset IFS
+        for dir in $DIRS; do
 
             declare -A test_results
             declare -A test_results_coverage
