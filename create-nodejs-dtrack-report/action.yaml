@@ -20,6 +20,10 @@ inputs:
   dtrack-api-key:
     description: API Key for the DTrack instance
     required: true
+  github-token:
+    description: GitHub token to upload the SBOM as release asset
+    required: false
+    default: ${{ secrets.GITHUB_TOKEN }}
 
 runs:
   using: "composite"
@@ -76,7 +80,7 @@ runs:
         file: ./bom.xml
         upload-url: ${{ github.event.release.upload_url }}
         label: bom.xml
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github-token }}
 
     - name: Upload to DTrack
       uses: DependencyTrack/gh-upload-sbom@v3

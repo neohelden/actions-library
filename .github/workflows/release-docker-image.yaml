@@ -175,3 +175,4 @@ jobs:
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
           dtrack-url: ${{ inputs.dtrack-url }}
           release-version: ${{ github.event.release.tag_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
