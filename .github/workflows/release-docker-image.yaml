@@ -46,6 +46,11 @@ on:
         required: false
         type: string
         default: dtrack.neohelden.de
+      dtrack-component-type:
+        description: Type of the component
+        required: false
+        default: application
+        type: string
 
     secrets:
       image-registry-username:
@@ -177,3 +182,4 @@ jobs:
           dtrack-hostname: ${{ inputs.dtrack-hostname }}
           release-version: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          component-type: ${{ inputs.dtrack-component-type }}

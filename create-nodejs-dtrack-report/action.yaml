@@ -20,6 +20,10 @@ inputs:
   dtrack-api-key:
     description: API Key for the DTrack instance
     required: true
+  component-type:
+    description: Type of the component, see https://docs.cyclonedx.org/1.4/json/#type for possible values
+    required: false
+    default: application
   github-token:
     description: GitHub token to upload the SBOM as release asset
     required: true
@@ -53,6 +57,8 @@ runs:
           npm version ${{ inputs.release-version }} --no-git-tag-version
         fi
 
+        yarn install --frozen-lockfile
+
         # Check for Yarnrc file
         if [ -f .yarnrc.yml ]; then
           echo "Yarn v4 PnP detected"
@@ -62,13 +68,13 @@ runs:
     - name: Generate CycloneDX SBOM (Yarn 1)
       working-directory: ./
       if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
-      run: npx @cyclonedx/bom@3 -o bom.xml
+      run: npx @cyclonedx/bom@3 -l -o bom.xml -t ${{ inputs.component-type }}
       shell: bash
 
     - name: Generate CycloneDX SBOM (Yarn >= 3)
       working-directory: ./
       if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
-      run: yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --output-format XML --output-file bom.xml
+      run: yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --prod --output-format XML --output-file bom.xml --mc-type ${{ inputs.component-type }}
       shell: bash
 
     - name: Upload SBOM
