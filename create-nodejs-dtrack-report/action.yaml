@@ -87,10 +87,10 @@ runs:
     - name: Upload asset to release
       uses: csexton/release-asset-action@v3
       if: steps.check_node.outputs.node-project == 'true'
+      continue-on-error: true
       with:
         file: ./bom.xml
         release-url: ${{ github.event.release.url }}
-        label: bom.xml
         github-token: ${{ inputs.github-token }}
 
     - name: Upload to DTrack
