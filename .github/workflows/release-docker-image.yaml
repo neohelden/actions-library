@@ -169,7 +169,7 @@ jobs:
     needs:
       - release-docker-image
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@main
+      - uses: neohelden/actions-library/check-code-compliance@add-dtrack-action
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
