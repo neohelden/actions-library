@@ -47,6 +47,12 @@ runs:
         fi
         echo "node-project=true" >> "$GITHUB_OUTPUT"
 
+        # Set release version in package.json
+        if [ -n "${{ inputs.release-version }}" ]; then
+          echo "Setting version to ${{ inputs.release-version }}"
+          npm version ${{ inputs.release-version }} --no-git-tag-version
+        fi
+
         # Check for Yarnrc file
         if [ -f .yarnrc.yml ]; then
           echo "Yarn v4 PnP detected"
