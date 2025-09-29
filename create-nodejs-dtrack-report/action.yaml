@@ -14,7 +14,7 @@ inputs:
     description: Version of the release, used for DTrack report
     required: true
     default: ${{ github.event.release.tag_name }}
-  dtrack-url:
+  dtrack-hostname:
     description: URL of the DTrack instance
     required: true
   dtrack-api-key:
@@ -77,14 +77,14 @@ runs:
       if: steps.check_node.outputs.node-project == 'true'
       with:
         file: ./bom.xml
-        upload-url: ${{ github.event.release.upload_url }}
+        release-url: ${{ github.event.release.url }}
         label: bom.xml
         github-token: ${{ inputs.github-token }}
 
     - name: Upload to DTrack
       uses: DependencyTrack/gh-upload-sbom@v3
       with:
-        serverHostname: ${{ inputs.dtrack-url }}
+        serverHostname: ${{ inputs.dtrack-hostname }}
         apiKey: ${{ inputs.dtrack-api-key }}
         projectName: ${{ inputs.artifact-name }}
         projectVersion: ${{ inputs.release-version }}

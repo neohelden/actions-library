@@ -41,11 +41,11 @@ on:
         default: ""
         type: string
 
-      dtrack-url:
+      dtrack-hostname:
         description: URL of the DTrack instance
         required: false
         type: string
-        default: https://dtrack.neohelden.de
+        default: dtrack.neohelden.de
 
     secrets:
       image-registry-username:
@@ -173,6 +173,6 @@ jobs:
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
-          dtrack-url: ${{ inputs.dtrack-url }}
+          dtrack-hostname: ${{ inputs.dtrack-hostname }}
           release-version: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
