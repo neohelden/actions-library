@@ -182,7 +182,7 @@ jobs:
           fi
         id: dtrack-check
 
-      - uses: neohelden/actions-library/create-nodejs-dtrack-report@add-dtrack-action
+      - uses: neohelden/actions-library/create-nodejs-dtrack-report@main
         if: steps.dtrack-check.outputs.dtrack-skip != 'true'
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
