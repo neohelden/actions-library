@@ -174,7 +174,16 @@ jobs:
     needs:
       - release-docker-image
     steps:
+      - run: |
+          if [ "${{ secrets.dtrack-api-key }}" = "" ]; then
+            echo "No DTrack API key provided, skipping DTrack report generation"
+            echo "dtrack-skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+        id: dtrack-check
+
       - uses: neohelden/actions-library/create-nodejs-dtrack-report@add-dtrack-action
+        if: steps.dtrack-check.outputs.dtrack-skip != 'true'
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
