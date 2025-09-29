@@ -170,12 +170,12 @@ jobs:
 
   create-dtrack-report:
     runs-on: ubuntu-latest
-    if: ${{ secrets.dtrack-api-key }} != ''
     timeout-minutes: 20
     needs:
       - release-docker-image
     steps:
       - uses: neohelden/actions-library/create-nodejs-dtrack-report@add-dtrack-action
+        if: ${{ secrets.dtrack-api-key }} != ''
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
