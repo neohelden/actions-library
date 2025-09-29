@@ -41,6 +41,12 @@ on:
         default: ""
         type: string
 
+      dtrack-url:
+        description: URL of the DTrack instance
+        required: false
+        type: string
+        default: https://dtrack.neohelden.de
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -60,6 +66,10 @@ on:
       notion-token:
         required: false
         description: Token for accessing Notion.com
+
+      dtrack-api-key:
+        required: false
+        description: API Key for the DTrack instance
 
 jobs:
   release-docker-image:
@@ -152,3 +162,15 @@ jobs:
           name: ${{ github.event.release.tag_name }}
           tags: ${{ inputs.registry-org }}/${{ inputs.image-name }}
           body: ${{ github.event.release.body }}
+
+  create-dtrack-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - release-docker-image
+    steps:
+      - uses: neohelden/actions-library/check-code-compliance@main
+        with:
+          checkout-ref: ${{ github.event.release.tag_name }}
+          dtrack-api-key: ${{ secrets.dtrack-api-key }}
+          dtrack-url: ${{ inputs.dtrack-url }}

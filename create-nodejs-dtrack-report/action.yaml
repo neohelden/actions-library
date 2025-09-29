@@ -1,0 +1,89 @@
+name: DTrack SBOM Report for NodeJS for releases
+description: Create a DTrack SBOM report for NodeJS projects on releases
+
+inputs:
+  checkout-ref:
+    description: Ref to checkout from Git
+    default: ${{ github.event.pull_request.head.sha }}
+    required: false
+  artifact-name:
+    description: Name of the artifact. Default is derived from the repo name.
+    required: false
+    default: ${{ github.event.repository.name }}
+  release-version:
+    description: Version of the release, used for DTrack report
+    required: true
+    default: ${{ github.event.release.tag_name }}
+  dtrack-url:
+    description: URL of the DTrack instance
+    required: true
+  dtrack-api-key:
+    description: API Key for the DTrack instance
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "24.x"
+
+    - uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.checkout-ref }}
+
+    - name: Check if node project (package.json exists)
+      shell: bash
+      id: check_node
+      run: |
+        if [ ! -f package.json ]; then
+          echo "No package.json found, skipping node check"
+          echo "node-check-result=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        echo "node-project=true" >> "$GITHUB_OUTPUT"
+
+        # Check for Yarnrc file
+        if [ -f .yarnrc.yml ]; then
+          echo "Yarn v4 PnP detected"
+          echo "yarn-pnp=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Generate CycloneDX SBOM (Yarn 1)
+      working-directory: ./
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp != 'true'
+      run: npx @cyclonedx/bom@3 -o bom.xml
+      shell: bash
+
+    - name: Generate CycloneDX SBOM (Yarn >= 3)
+      working-directory: ./
+      if: steps.check_node.outputs.node-project == 'true' && steps.check_node.outputs.yarn-pnp == 'true'
+      run: yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --output-format XML --output-file bom.xml
+      shell: bash
+
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      if: steps.check_node.outputs.node-project == 'true'
+      with:
+        name: BOM - ${{ inputs.artifact-name }}
+        path: ./bom.xml
+
+    - name: Upload asset to release
+      uses: csexton/release-asset-action@v3
+      if: steps.check_node.outputs.node-project == 'true'
+      with:
+        file: ./bom.xml
+        upload-url: ${{ github.event.release.upload_url }}
+        label: bom.xml
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload to DTrack
+      uses: DependencyTrack/gh-upload-sbom@v3
+      with:
+        serverHostname: ${{ inputs.dtrack-url }}
+        apiKey: ${{ inputs.dtrack-api-key }}
+        projectName: ${{ inputs.artifact-name }}
+        projectVersion: ${{ inputs.release-version }}
+        bomFilename: "./bom.xml"
+        autoCreate: true
