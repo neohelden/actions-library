@@ -22,8 +22,7 @@ inputs:
     required: true
   github-token:
     description: GitHub token to upload the SBOM as release asset
-    required: false
-    default: ${{ secrets.GITHUB_TOKEN }}
+    required: true
 
 runs:
   using: "composite"
