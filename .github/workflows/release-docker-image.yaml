@@ -169,8 +169,9 @@ jobs:
     needs:
       - release-docker-image
     steps:
-      - uses: neohelden/actions-library/check-code-compliance@add-dtrack-action
+      - uses: neohelden/actions-library/create-nodejs-dtrack-report@add-dtrack-action
         with:
           checkout-ref: ${{ github.event.release.tag_name }}
           dtrack-api-key: ${{ secrets.dtrack-api-key }}
           dtrack-url: ${{ inputs.dtrack-url }}
+          release-version: ${{ github.event.release.tag_name }}
