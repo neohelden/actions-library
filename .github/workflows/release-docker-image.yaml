@@ -41,6 +41,17 @@ on:
         default: ""
         type: string
 
+      dtrack-hostname:
+        description: URL of the DTrack instance
+        required: false
+        type: string
+        default: dtrack.neohelden.de
+      dtrack-component-type:
+        description: Type of the component
+        required: false
+        default: application
+        type: string
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -60,6 +71,10 @@ on:
       notion-token:
         required: false
         description: Token for accessing Notion.com
+
+      dtrack-api-key:
+        required: false
+        description: API Key for the DTrack instance
 
 jobs:
   release-docker-image:
@@ -152,3 +167,27 @@ jobs:
           name: ${{ github.event.release.tag_name }}
           tags: ${{ inputs.registry-org }}/${{ inputs.image-name }}
           body: ${{ github.event.release.body }}
+
+  create-dtrack-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - release-docker-image
+    steps:
+      - run: |
+          if [ "${{ secrets.dtrack-api-key }}" = "" ]; then
+            echo "No DTrack API key provided, skipping DTrack report generation"
+            echo "dtrack-skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+        id: dtrack-check
+
+      - uses: neohelden/actions-library/create-nodejs-dtrack-report@main
+        if: steps.dtrack-check.outputs.dtrack-skip != 'true'
+        with:
+          checkout-ref: ${{ github.event.release.tag_name }}
+          dtrack-api-key: ${{ secrets.dtrack-api-key }}
+          dtrack-hostname: ${{ inputs.dtrack-hostname }}
+          release-version: ${{ github.event.release.tag_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          component-type: ${{ inputs.dtrack-component-type }}
