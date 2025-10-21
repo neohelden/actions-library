@@ -34,7 +34,7 @@ inputs:
   image-base:
     description: Base image being used for creating the jib container image
     required: false
-    default: quay.io/sdase/openjdk-runtime:17.0.2-hotspot-distroless
+    default: gcr.io/distroless/java17-debian12
 
 runs:
   using: "composite"
