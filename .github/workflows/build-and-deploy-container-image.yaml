@@ -242,6 +242,12 @@ on:
         required: false
         default: false
 
+      image-base:
+        description: Base image being used for creating the jib container image
+        required: false
+        default: gcr.io/distroless/java17-debian12
+        type: string
+
     secrets:
       image-registry-username:
         description: Username used to login at the image registry
@@ -483,6 +489,7 @@ jobs:
           checkout-ref: ${{ inputs. checkout-ref}}
           image-registry: ${{ inputs.image-registry }}
           image-tag: ${{ inputs.image-tag }}
+          image-base: ${{ inputs.image-base }}
 
       - name: Build Docker image
         uses: neohelden/actions-library/build-docker-image@main
