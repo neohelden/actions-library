@@ -472,7 +472,7 @@ jobs:
           private_key: ${{ secrets.gh-app-private-key }}
 
       - name: Build Jib image
-        uses: neohelden/actions-library/build-jib-image@main
+        uses: neohelden/actions-library/build-jib-image@ms/fix_jdk_version
         if: needs.prepare.outputs.jib-is-enabled == 'true'
         with:
           image-registry-username: ${{ secrets.image-registry-username }}
