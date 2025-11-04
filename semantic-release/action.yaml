@@ -100,10 +100,10 @@ runs:
 
     # Releases created by the regular GITHUB_TOKEN will not trigger other actions, so we use a GitHub App instead.
     - id: generate_token
-      uses: tibdex/github-app-token@v1.4.0
+      uses: actions/create-github-app-token@v2
       with:
-        app_id: ${{ inputs.gh-app-id }}
-        private_key: ${{ inputs.gh-app-private-key }}
+        app-id: ${{ inputs.gh-app-id }}
+        private-key: ${{ inputs.gh-app-private-key }}
 
     - uses: actions/checkout@v4
       with:
