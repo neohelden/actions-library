@@ -403,7 +403,7 @@ jobs:
         with:
           app-id: ${{ secrets.gh-app-id }}
           private-key: ${{ secrets.gh-app-private-key }}
-          repositories: ${{ inputs.additional-submodule-repositories }}
+          repositories: ${{ github.event.repository.name }},${{ inputs.additional-submodule-repositories }}
 
       - uses: neohelden/actions-library/build-and-test-with-yarn@main
         if: needs.prepare.outputs.package-json-available == 'true'
