@@ -95,7 +95,7 @@ on:
         required: false
       additional-submodule-repositories:
         type: string
-        description: Comma or newline separated list of additional git repositories that must be accessible for the actions/checkout action as submodules
+        description: Comma separated list of additional git repositories that must be accessible for the actions/checkout action as submodules
         required: false
         default: ""
 
@@ -482,7 +482,7 @@ jobs:
         with:
           app-id: ${{ secrets.gh-app-id }}
           private-key: ${{ secrets.gh-app-private-key }}
-          repositories: ${{ inputs.additional-submodule-repositories }}
+          repositories: ${{ github.event.repository.name }},${{ inputs.additional-submodule-repositories }}
 
       - name: Build Jib image
         uses: neohelden/actions-library/build-jib-image@main
