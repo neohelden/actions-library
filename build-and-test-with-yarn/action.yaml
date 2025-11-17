@@ -276,7 +276,7 @@ runs:
 
     - name: SonarCloud Scan
       if: steps.yarn-deps.outputs.no-yarn != 'true' && steps.test.outputs.coverageExists == 'true'
-      uses: sonarsource/sonarcloud-github-action@master
+      uses: sonarsource/sonarqube-scan-action@40f5b61913e891f9d316696628698051136015be
       with:
         projectBaseDir: ${{ inputs.sonar-project-base-dir }}
         args: >
