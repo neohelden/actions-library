@@ -299,7 +299,7 @@ permissions:
   id-token: none
   issues: read
   #discussions: none
-  packages: none
+  packages: write
   #pages: none
   pull-requests: write
   repository-projects: none
