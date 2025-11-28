@@ -329,7 +329,7 @@ jobs:
             isPrOpen=false
           fi
           echo "is-pr-open=$isPrOpen" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: find docker file
         id: find-docker-file
         run: |
