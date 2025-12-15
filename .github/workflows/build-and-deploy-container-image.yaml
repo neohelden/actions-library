@@ -405,7 +405,7 @@ jobs:
           private-key: ${{ secrets.gh-app-private-key }}
           repositories: ${{ github.event.repository.name }},${{ inputs.additional-submodule-repositories }}
 
-      - uses: neohelden/actions-library/build-and-test-with-yarn@main
+      - uses: neohelden/actions-library/build-and-test-with-yarn@ms/test_workflow
         if: needs.prepare.outputs.package-json-available == 'true'
         with:
           sonar-token: ${{ secrets.sonar-token }}
