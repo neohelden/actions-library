@@ -84,6 +84,10 @@ inputs:
     description: Configuration file used by 'eslint'
     default: .eslintrc
     required: false
+  test-runner:
+    description: Test runner to use. Supported values are 'jest' and 'vitest'.
+    default: jest
+    required: false
 
 runs:
   using: "composite"
@@ -246,12 +250,23 @@ runs:
       id: test
       if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
-        if [ $(jq -r .devDependencies.jest package.json) = "null" ] && exit
+        if [ "${{ inputs.test-runner }}" = "vitest" ]
         then
-          echo "'jest' is not configured for this project - ignoring"
+          if [ "$(jq -r .devDependencies.vitest package.json)" = "null" ]
+          then
+            echo "'vitest' is not configured for this project - ignoring"
+          else
+            npx vitest run --coverage
+            echo "coverageExists=true" >> "$GITHUB_OUTPUT"
+          fi
         else
-          npx jest --ci --coverage --detectOpenHandles
-          echo "coverageExists=true" >> "$GITHUB_OUTPUT"
+          if [ "$(jq -r .devDependencies.jest package.json)" = "null" ]
+          then
+            echo "'jest' is not configured for this project - ignoring"
+          else
+            npx jest --ci --coverage --detectOpenHandles
+            echo "coverageExists=true" >> "$GITHUB_OUTPUT"
+          fi
         fi
       working-directory: ./
       shell: bash

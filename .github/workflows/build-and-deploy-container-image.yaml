@@ -14,7 +14,8 @@ on:
         required: false
       audit-ci-config:
         type: string
-        description: Path to JSON config file used for configuring audit-ci (e.g. for allowing certain CVEs)
+        description: Path to JSON config file used for configuring audit-ci (e.g. for
+          allowing certain CVEs)
         default: "audit-ci.json"
         required: false
       tsconfig-build-file:
@@ -39,7 +40,8 @@ on:
         required: false
 
       image-registry:
-        description: Host name of the image registry where build container images are pushed to
+        description: Host name of the image registry where build container images are
+          pushed to
         required: false
         default: registry.neohelden.com
         type: string
@@ -80,12 +82,14 @@ on:
         default: ""
       docker-push-build-secret-files:
         type: string
-        description: Secret files passed to docker-build-push-action in yaml multiline format
+        description: Secret files passed to docker-build-push-action in yaml multiline
+          format
         required: false
         default: ""
       container-verify-cmd:
         type: string
-        description: "Log entry which shows up if the container starts up successfully after build"
+        description: "Log entry which shows up if the container starts up successfully
+          after build"
         required: true
 
       checkout-ref:
@@ -95,13 +99,20 @@ on:
         required: false
       additional-submodule-repositories:
         type: string
-        description: Comma separated list of additional git repositories that must be accessible for the actions/checkout action as submodules
+        description: Comma separated list of additional git repositories that must be
+          accessible for the actions/checkout action as submodules
         required: false
         default: ""
 
+      test-runner:
+        type: string
+        description: Test runner to use. Supported values are 'jest' and 'vitest'.
+        default: jest
+        required: false
       sonar-project-base-dir:
         type: string
-        description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
+        description: Use this property when you need the analysis to take place in a
+          directory other than the one from which it was launched.
         default: ./
         required: false
       sonar-organization:
@@ -111,7 +122,8 @@ on:
         required: false
       sonar-projectKey:
         type: string
-        description: The project's unique key. Allowed characters are letters, numbers, -, _, . and :, with at least one non-digit.
+        description: The project's unique key. Allowed characters are letters, numbers,
+          -, _, . and :, with at least one non-digit.
         default: ${{ github.event.repository.name }}
         required: false
       sonar-sources:
@@ -121,37 +133,49 @@ on:
         required: false
       sonar-inclusions:
         type: string
-        description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.sources`.
+        description: Comma-delimited path matching patterns defining files to be
+          included in analysis, among those found below directories specified in
+          `sonar.sources`.
         default: "**/*.ts"
         required: false
       sonar-exclusions:
         type: string
-        description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.sources`.
+        description: Comma-delimited path matching patterns defining files to be
+          excluded from analysis, among those found below the directories
+          specified in `sonar.sources`.
         default: "**/*.test.ts"
         required: false
       sonar-tests:
         type: string
-        description: Holds a comma-delimited list of directories (not a path matching pattern) relative to the current working directory.
+        description: Holds a comma-delimited list of directories (not a path matching
+          pattern) relative to the current working directory.
         default: src/
         required: false
       sonar-test-inclusions:
         type: string
-        description: Comma-delimited path matching patterns defining files to be included in analysis, among those found below directories specified in `sonar.tests`. Applied after `sonar.test.exclusions` and therefore overriding it.
+        description: Comma-delimited path matching patterns defining files to be
+          included in analysis, among those found below directories specified in
+          `sonar.tests`. Applied after `sonar.test.exclusions` and therefore
+          overriding it.
         default: "**/*.test.ts"
         required: false
       sonar-test-exclusions:
         type: string
-        description: Comma-delimited path matching patterns defining files to be excluded from analysis, among those found below the directories specified in `sonar.tests`.
+        description: Comma-delimited path matching patterns defining files to be
+          excluded from analysis, among those found below the directories
+          specified in `sonar.tests`.
         default: ""
         required: false
       sonar-coverage-exclusions:
         type: string
-        description: Comma delimited path matching patterns defining files to be excluded from coverage reporting.
+        description: Comma delimited path matching patterns defining files to be
+          excluded from coverage reporting.
         default: ""
         required: false
       sonar-lcov-reportpaths:
         type: string
-        description: Comma-delimited list of paths to LCOV coverage report files. Paths may be absolute or relative to the project root.
+        description: Comma-delimited list of paths to LCOV coverage report files. Paths
+          may be absolute or relative to the project root.
         default: coverage/lcov.info
         required: false
       sonar-verbose:
@@ -181,7 +205,8 @@ on:
         required: false
       release-extra-plugins:
         type: string
-        description: Comma separated list of extra plugins to load for the sematic-release package
+        description: Comma separated list of extra plugins to load for the
+          sematic-release package
         required: false
       release-labels:
         type: string
@@ -217,7 +242,8 @@ on:
 
       maximize-build-space:
         type: boolean
-        description: Set this to 'true' in case you need to maxmize the disk-space by removing unnecessary software.
+        description: Set this to 'true' in case you need to maxmize the disk-space by
+          removing unnecessary software.
         required: false
         default: false
 
@@ -267,7 +293,8 @@ on:
         required: true
         description: "Token used for pushing test results to SonarCloud.io"
       global-audit-ci-repo-key:
-        description: An SSH Key to load the repo https://github.com/neohelden/global-audit-ci-config
+        description: An SSH Key to load the repo
+          https://github.com/neohelden/global-audit-ci-config
         required: true
       argocd-auth-token:
         description: Token for authenticating on ArgoCD host
@@ -282,7 +309,8 @@ on:
         description: Token used for accessing GitHub.com
         required: true
       asana-github-api-token:
-        description: Token used for asana github api access (not used anymore, but kept for backwards-compatibility!)
+        description: Token used for asana github api access (not used anymore, but kept
+          for backwards-compatibility!)
         required: false
       sentry-auth-token:
         description: A sentry token available at /sentry-auth in the docker build
@@ -403,7 +431,8 @@ jobs:
         with:
           app-id: ${{ secrets.gh-app-id }}
           private-key: ${{ secrets.gh-app-private-key }}
-          repositories: ${{ github.event.repository.name }},${{ inputs.additional-submodule-repositories }}
+          repositories: ${{ github.event.repository.name }},${{
+            inputs.additional-submodule-repositories }}
 
       - uses: neohelden/actions-library/build-and-test-with-yarn@main
         if: needs.prepare.outputs.package-json-available == 'true'
@@ -429,6 +458,7 @@ jobs:
           prettier-source-paths: ${{ inputs.prettier-source-paths }}
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
+          test-runner: ${{ inputs.test-runner }}
 
       - uses: neohelden/actions-library/build-and-test-with-gradle@main
         if: needs.prepare.outputs.gradle-available == 'true'
@@ -473,7 +503,8 @@ jobs:
     steps:
       - name: Prepare build secrets
         id: dockerArgs
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' ||
+          github.ref == 'refs/heads/main'
         run: |
           echo "sentry-conditional-token=sentry-auth-token=${{ secrets.sentry-auth-token }}" >> "$GITHUB_OUTPUT"
 
@@ -482,7 +513,8 @@ jobs:
         with:
           app-id: ${{ secrets.gh-app-id }}
           private-key: ${{ secrets.gh-app-private-key }}
-          repositories: ${{ github.event.repository.name }},${{ inputs.additional-submodule-repositories }}
+          repositories: ${{ github.event.repository.name }},${{
+            inputs.additional-submodule-repositories }}
 
       - name: Build Jib image
         uses: neohelden/actions-library/build-jib-image@main
@@ -573,7 +605,8 @@ jobs:
             -i registry.neohelden.com/${{ inputs.registry-org }}/${{ inputs.image-name }}:${{ github.event.pull_request.head.sha }}
 
   status-badge:
-    if: (!contains(github.event.pull_request.body, 'App Deployment')) && contains(github.event.pull_request.labels.*.name, 'deploy')
+    if: (!contains(github.event.pull_request.body, 'App Deployment')) &&
+      contains(github.event.pull_request.labels.*.name, 'deploy')
     runs-on: ubuntu-latest
     needs:
       - deploy-pr
