@@ -250,6 +250,8 @@ runs:
       id: test
       if: steps.yarn-deps.outputs.no-yarn != 'true'
       run: |
+        availableRam=$(free -m | awk '/^Mem:/{print $2}')
+        export NODE_OPTIONS="--max-old-space-size=$((availableRam * 80 / 100))"
         if [ "${{ inputs.test-runner }}" = "vitest" ]
         then
           if [ "$(jq -r .devDependencies.vitest package.json)" = "null" ]
