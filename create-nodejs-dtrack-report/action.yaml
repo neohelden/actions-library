@@ -77,6 +77,21 @@ runs:
       run: yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --prod --output-format XML --output-file bom.xml --mc-type ${{ inputs.component-type }}
       shell: bash
 
+    - name: Sanitize SPDX license ids unknown to Dependency-Track
+      # Newer SPDX license identifiers (e.g. FSL-1.1-MIT, pulled in via @sentry/cli)
+      # are not part of the SPDX enumeration bundled in our self-hosted DTrack. In
+      # CycloneDX <license><id> is strictly validated against that enum, so DTrack
+      # rejects the upload with HTTP 400. <license><name> is free text and is not
+      # validated, so we rewrite the offending ids from <id> to <name>. Extend the
+      # list below when a new license trips the upload; remove once DTrack is updated.
+      if: steps.check_node.outputs.node-project == 'true'
+      shell: bash
+      run: |
+        UNKNOWN_SPDX_IDS=("FSL-1.1-MIT")
+        for id in "${UNKNOWN_SPDX_IDS[@]}"; do
+          sed -i "s#<id>${id}</id>#<name>${id}</name>#g" bom.xml
+        done
+
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       if: steps.check_node.outputs.node-project == 'true'
