@@ -99,6 +99,11 @@ on:
         required: false
         default: ""
 
+      test-runner:
+        type: string
+        description: Test runner to use. Supported values are 'jest' and 'vitest'.
+        default: jest
+        required: false
       sonar-project-base-dir:
         type: string
         description: Use this property when you need the analysis to take place in a directory other than the one from which it was launched.
@@ -429,6 +434,7 @@ jobs:
           prettier-source-paths: ${{ inputs.prettier-source-paths }}
           eslint-ext-patterns: ${{ inputs.eslint-ext-patterns }}
           eslint-configuration-file: ${{ inputs.eslint-configuration-file }}
+          test-runner: ${{ inputs.test-runner }}
 
       - uses: neohelden/actions-library/build-and-test-with-gradle@main
         if: needs.prepare.outputs.gradle-available == 'true'
