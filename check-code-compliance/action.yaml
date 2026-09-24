@@ -60,6 +60,13 @@ runs:
         fi
         echo "openapi-check-result=true" >> "$GITHUB_OUTPUT"
 
+    - name: Fetch base branch for OpenAPI diff
+      if: steps.check_openapi.outputs.openapi-check-result == 'true'
+      shell: bash
+      env:
+        BASE_REF: ${{ github.base_ref }}
+      run: git fetch --no-tags origin "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+
     - uses: oasdiff/oasdiff-action/breaking@v0
       if: steps.check_openapi.outputs.openapi-check-result == 'true'
       with:
