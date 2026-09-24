@@ -61,6 +61,7 @@ runs:
         echo "openapi-check-result=true" >> "$GITHUB_OUTPUT"
 
     - uses: oasdiff/oasdiff-action/breaking@v0
+      if: steps.check_openapi.outputs.openapi-check-result == 'true'
       with:
         base: "origin/${{ github.base_ref }}:openapi.yaml"
         revision: "HEAD:openapi.yaml"
